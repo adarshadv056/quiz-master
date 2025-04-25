@@ -1,0 +1,42 @@
+<nav class="navbar mx-2 mt-2 rounded navbar-expand-lg bg-secondary">
+    <div class="container-fluid">
+        <div class="collapse navbar-collapse navitems" id="navbarSupportedContent">
+            <ul class="navbar-nav  mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active text-light" aria-current="page" href="/admin/{{name}}">Home</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav  mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active text-light" aria-current="page" href="/admin/quiz_management/{{name}}">Quiz</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav  mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active text-light" aria-current="page" href="/admin/users/{{name}}">Users</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav  mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active text-light" aria-current="page" href="/admin/admin_summary/{{name}}">Summary</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active " aria-current="page" href="/logout">Logout</a>
+                </li>
+            </ul>
+            <form class="d-flex" role="search" action="/admin/search/{{name}}" method="post">
+                <input class="form-control me-2" type="search" name="search" placeholder="Search" aria-label="Search" value="{{ request.form.get('search', '') }}">
+                <input hidden name="page" value="{{ (current_page if current_page else ('quiz' if 'quiz' in request.path else 'home')) | trim }}">
+                <button class="btn btn-outline-light" type="submit">Search</button>
+            </form>
+            <a class="navbar-brand navname text-light" href="">Welcome {{name}}</a>
+            <button class="navbar-toggler " type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </div>
+</nav>
