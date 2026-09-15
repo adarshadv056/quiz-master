@@ -1,30 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Master - User Summary</title>
+    <title>My summary - Quiz Master</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/main.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 </head>
-
 <body>
     {%include 'user_nav.html'%}
-    <div class="d-flex justify-content-center align-items-center vh-100">
-        <div class="d-flex flex-row">
-            <div class="me-5">
-                <img src="/static/images/user_barchart.jpeg" height="550px"
-                    width="550px" alt="subject-wise no of quizz attempt" draggable="false">
+    <div class="qm-page">
+        <div class="qm-header">
+            <h1>My progress</h1>
+            <p class="qm-text-muted">A visual look at how you've been learning.</p>
+        </div>
+        <div class="qm-charts">
+            <div class="qm-chart-card">
+                <div class="qm-chart-card__title">Attempts by subject</div>
+                <img src="/static/images/user_barchart.jpeg" alt="Bar chart of quiz attempts grouped by subject" draggable="false">
             </div>
-            <div class="ms-5">
-                <img src="/static/images/user_piechart.jpeg"
-                    height="550px" width="550px" alt="month-wise no of quizz attempt" draggable="false">
+            <div class="qm-chart-card">
+                <div class="qm-chart-card__title">Attempts by month</div>
+                <img src="/static/images/user_piechart.jpeg" alt="Pie chart of quiz attempts grouped by month" draggable="false">
             </div>
         </div>
     </div>
-
 </body>
-
 </html>

@@ -1,57 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Registration - Quiz Master</title>
+    <title>Create account - Quiz Master</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/main.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 </head>
-
 <body>
-    <div class="card shadow p-4" style="align-items: center; width: 650px;  display: flex; justify-content: center; margin:50px auto;">
-        <div class="">
-            <img src="" alt="">
-        </div>
-        <div id="user_registerform">
-            <div>
-                <h1 style="display: flex; justify-content: center;">Welcome to Quiz Master</h1>
-                <h2 style="display: flex; justify-content: center;">Register</h2>
-            </div>
-            <div>
+    <div class="qm-auth">
+        <div class="qm-auth__card">
+            <div class="qm-auth__logo"><span>QM</span> Quiz Master</div>
+            <div class="qm-form qm-form--narrow">
+                <h2>Create your account</h2>
+                <p class="qm-form__subtitle">Start taking quizzes in under a minute</p>
                 <form action="/register" method="POST">
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email address</label>
-                        <input style="width: 500px;" type="email" class="form-control" id="email" name="email" placeholder="Enter you email" required>
+                    <div class="qm-field">
+                        <label for="full_name">Full name</label>
+                        <input type="text" id="full_name" name="user_name" placeholder="Your name" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input style="width: 500px;" type="password" class="form-control" id="password" name="password" placeholder="Entre your password" required>
+                    <div class="qm-field">
+                        <label for="email">Email address</label>
+                        <input type="email" id="email" name="email" placeholder="you@example.com" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="full_name" class="form-label">Full Name</label>
-                        <input style="width: 500px;" type="text" class="form-control" id="full_name" name="user_name" placeholder="Entre your Full Name" required>
+                    <div class="qm-field">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" placeholder="Choose a password" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="qualification" class="form-label">Qualification</label>
-                        <input style="width: 500px;" type="text" class="form-control" id="qualification" name="qualification" placeholder="What are your qualifications" required>
+                    <div class="qm-field">
+                        <label for="qualification">Qualification</label>
+                        <input type="text" id="qualification" name="qualification" placeholder="e.g. B.Sc Computer Science" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="dob" class="form-label">Date of Birth</label>
-                        <input type="date" class="form-control" id="dob" name="dob" required>
+                    <div class="qm-field">
+                        <label for="dob">Date of birth</label>
+                        <input type="date" id="dob" name="dob" required>
                     </div>
-                    <div class="mb-3">
-                        <input type="submit" class="btn btn-outline-dark w-100" value="Register">
-                    </div>
-                    <div class="mb-2 d-flex align-items-center justify-content-center">Already have an account? <a class="ms-3 "style="text-decoration: none;" href="/login">Login here</a>
-                    </div>
-                    <div class="{% if mssg=='User already exists' %} text-danger {%else%} text-success {%endif%}" style="text-align: center;">{{mssg}}</div>
+                    <button type="submit" class="qm-btn qm-btn--primary qm-btn--block qm-btn--lg">Create account</button>
                 </form>
+                {% if mssg %}
+                <div class="qm-msg {% if mssg=='User already exists' %}qm-msg--error{% else %}qm-msg--success{% endif %}">{{mssg}}</div>
+                {% endif %}
+                <div class="qm-auth__footer">
+                    Already have an account? <a href="/login">Sign in</a>
+                </div>
             </div>
         </div>
     </div>
 </body>
-
 </html>

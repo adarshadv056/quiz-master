@@ -1,22 +1,171 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Master</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/main.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 </head>
+<body>
+    <main class="qm-landing">
+        <nav class="qm-landing__nav" aria-label="Home">
+            <a href="/" class="qm-landing__brand">Quiz Master</a>
+            <div class="qm-landing__nav-actions">
+                <a href="#features">Features</a>
+                <a href="#workflow">Workflow</a>
+                <a href="#roles">Roles</a>
+                <a href="/login" class="qm-btn qm-btn--secondary">Sign in</a>
+            </div>
+        </nav>
 
-<body >
-    <div class="card shadow home">
-        <h1>Welcome to Quiz Master</h1>
-        <form action="/home" method="POST">
-            <input type="submit" class="btn btn-outline-secondary" value="Login" href="/user_login.html">
-        </form>
-    </div>
+        <section class="qm-hero">
+            <div class="qm-hero__content">
+                <div class="qm-hero__badge">Built for sharper study sessions</div>
+                <h1>Quiz management with a calm, premium study experience.</h1>
+                <p>Quiz Master brings quiz creation, scheduled attempts, score tracking, and performance summaries into one focused web app for students and admins.</p>
+                <div class="qm-hero__actions">
+                    <form action="/home" method="POST">
+                        <button type="submit" class="qm-btn qm-btn--primary qm-btn--lg">Get started</button>
+                    </form>
+                    <a href="/register" class="qm-btn qm-btn--ghost qm-btn--lg">Create account</a>
+                </div>
+                <dl class="qm-hero__facts">
+                    <div>
+                        <dt>Role based</dt>
+                        <dd>Admin and student views stay separate.</dd>
+                    </div>
+                    <div>
+                        <dt>Structured</dt>
+                        <dd>Subjects, chapters, quizzes, questions.</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <div class="qm-hero__preview" aria-label="Quiz preview">
+                <div class="qm-preview-card">
+                    <div class="qm-preview-card__top">
+                        <span>Physics fundamentals</span>
+                        <strong>18 min</strong>
+                    </div>
+                    <div class="qm-preview-card__question">Which quantity remains constant in uniform circular motion?</div>
+                    <div class="qm-preview-option is-selected">Speed</div>
+                    <div class="qm-preview-option">Velocity</div>
+                    <div class="qm-preview-option">Acceleration direction</div>
+                    <div class="qm-preview-score">
+                        <span>Readiness</span>
+                        <strong>86%</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="qm-landing__rail" aria-label="Highlights">
+            <div>
+                <strong>Self-paced</strong>
+                <span>Attempt available quizzes when they open.</span>
+            </div>
+            <div>
+                <strong>Instant scores</strong>
+                <span>See attempts and results without waiting.</span>
+            </div>
+            <div>
+                <strong>Admin ready</strong>
+                <span>Manage subjects, chapters, quizzes, and users.</span>
+            </div>
+        </section>
+
+        <section class="qm-landing-section" id="features">
+            <div class="qm-section-heading">
+                <span>What the app does</span>
+                <h2>Everything needed for a complete quiz workflow.</h2>
+                <p>Quiz Master keeps the college-project scope simple, but presents it like a polished academic product.</p>
+            </div>
+            <div class="qm-feature-grid">
+                <article class="qm-feature-card">
+                    <span>01</span>
+                    <h3>Subject and chapter library</h3>
+                    <p>Admins can organize quiz content by subject and chapter so students always know what topic they are attempting.</p>
+                </article>
+                <article class="qm-feature-card">
+                    <span>02</span>
+                    <h3>Quiz scheduling</h3>
+                    <p>Quizzes open based on their quiz date, keeping the student dashboard focused on what is currently available.</p>
+                </article>
+                <article class="qm-feature-card">
+                    <span>03</span>
+                    <h3>Question management</h3>
+                    <p>Create multiple-choice questions, edit quiz details, and maintain the question set from the admin workspace.</p>
+                </article>
+                <article class="qm-feature-card">
+                    <span>04</span>
+                    <h3>Score history</h3>
+                    <p>Students can review previous attempts and see how their quiz performance changes over time.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="qm-landing-section qm-workflow" id="workflow">
+            <div class="qm-section-heading">
+                <span>How it works</span>
+                <h2>A clear path from setup to result.</h2>
+            </div>
+            <div class="qm-workflow__grid">
+                <div class="qm-workflow__step">
+                    <strong>Build</strong>
+                    <p>Admin creates subjects, chapters, quizzes, and questions.</p>
+                </div>
+                <div class="qm-workflow__step">
+                    <strong>Attempt</strong>
+                    <p>Student opens an available quiz, previews details, and starts the attempt.</p>
+                </div>
+                <div class="qm-workflow__step">
+                    <strong>Review</strong>
+                    <p>The app stores scores and shows results, summaries, and charts.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="qm-landing-section" id="roles">
+            <div class="qm-role-layout">
+                <div class="qm-section-heading">
+                    <span>Designed for two roles</span>
+                    <h2>One app, two focused dashboards.</h2>
+                    <p>Admins get control over quiz content. Students get a clean view of what to attempt and how they performed.</p>
+                </div>
+                <div class="qm-role-cards">
+                    <article>
+                        <h3>Admin dashboard</h3>
+                        <ul>
+                            <li>Manage subjects and chapters</li>
+                            <li>Create and edit quizzes</li>
+                            <li>Add questions and answer options</li>
+                            <li>View users and summary charts</li>
+                        </ul>
+                    </article>
+                    <article>
+                        <h3>Student dashboard</h3>
+                        <ul>
+                            <li>See available quizzes</li>
+                            <li>Preview quiz details before starting</li>
+                            <li>Attempt timed quizzes</li>
+                            <li>Review scores and progress</li>
+                        </ul>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="qm-landing-cta">
+            <div>
+                <span>Ready to begin</span>
+                <h2>Start with a clean login flow and move straight into quizzes.</h2>
+            </div>
+            <form action="/home" method="POST">
+                <button type="submit" class="qm-btn qm-btn--primary qm-btn--lg">Open Quiz Master</button>
+            </form>
+        </section>
+    </main>
 </body>
-
 </html>
