@@ -45,7 +45,7 @@ def create_db_and_admin():
 
 create_db_and_admin()
 
-from controllers.controllers import *
+from controllers import controllers
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
