@@ -1,28 +1,52 @@
+import os
 from flask import Flask
 from models.models import db, user_info
-import os
 
-app= None
+# Load environment variables from .env file if available
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
-def quiz_app():
-    app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///quiz_master.db'
-    app.debug = True
-    db.init_app(app)
-    app.app_context().push() # to access other modules(outside app.py) that uses app
+app = Flask(__name__)
+
+# Secret key configuration for sessions
+app.secret_key = os.environ.get("SECRET_KEY", "qm_default_dev_secret_key_2026")
+
+# Database configuration (PostgreSQL for cloud, SQLite for local)
+db_url = os.environ.get("DATABASE_URL", "sqlite:///quiz_master.db")
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Debug mode
+app.debug = os.environ.get("FLASK_DEBUG", "1").lower() in ("1", "true")
+
+db.init_app(app)
+app.app_context().push()
 
 def create_db_and_admin():
-    if not os.path.exists('quiz_master.db'):
-        db.create_all()
-        if not user_info.query.filter_by(email="admin@iitm").first():
-            admin = user_info(name="Admin", email="admin@iitm", password="admin123",qualification="Admin",dob="" ,role=0)
-            db.session.add(admin)
-            db.session.commit()
+    db.create_all()
+    admin_email = os.environ.get("ADMIN_EMAIL", "admin@iitm")
+    admin_pwd = os.environ.get("ADMIN_PASSWORD", "admin123")
+    if not user_info.query.filter_by(email=admin_email).first():
+        admin = user_info(
+            name="Admin",
+            email=admin_email,
+            password=admin_pwd,
+            qualification="Admin",
+            dob="",
+            role=0
+        )
+        db.session.add(admin)
+        db.session.commit()
 
-quiz_app()
 create_db_and_admin()
 
 from controllers.controllers import *
 
 if __name__ == "__main__":
-    app.run()
+    port = int(os.environ.get("PORT", 5000))
+    app.run(port=port)

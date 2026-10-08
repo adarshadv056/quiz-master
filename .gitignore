@@ -1,0 +1,33 @@
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Virtual Environment
+venv/
+.venv/
+env/
+ENV/
+
+# Deployment & Vercel
+.vercel/
+build/
+dist/
+
+# Operating System & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Diagnostic & Scratch Logs
+*.log
+log.txt
+err.txt

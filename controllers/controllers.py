@@ -400,8 +400,6 @@ def view_quiz(quiz_id,name):
     quiz = get_quiz_by_id(quiz_id)
     return render_template("view_quiz.html", name=name, quiz=quiz)
 
-app.secret_key="ad"
-
 @app.route("/user/start/quiz/<quiz_id>/<name>", methods=["GET", "POST"])
 @login_required
 def start_quiz(quiz_id,name):
