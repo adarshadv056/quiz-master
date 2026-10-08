@@ -1,51 +1,500 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Users - Quiz Master</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/main.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registered Users &mdash; Quiz Master</title>
+
+  <!-- Typography: Plus Jakarta Sans (Headings) + DM Sans (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ================================================================
+       DESIGN TOKENS — Source of Truth from Landing Page
+       ================================================================ */
+    :root {
+      --bg: #09090b;
+      --bg-1: #0e0e12;
+      --bg-2: #141419;
+      --bg-3: #1a1a22;
+      --border: rgba(255,255,255,.07);
+      --border+: rgba(255,255,255,.13);
+      --border++: rgba(255,255,255,.22);
+      --ink: #f4f4f6;
+      --ink-2: #8a8a9a;
+      --ink-3: #525262;
+
+      /* Brand accents */
+      --lav: #B9A7FF;
+      --lav-s: #d4c8ff;
+      --org: #FF762D;
+      --org-s: #ff9152;
+      --lime: #C9EE83;
+      --red: #FF6F76;
+
+      --f-head: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --f-body: 'DM Sans', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--f-body);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* Film grain texture */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 9999;
+      pointer-events: none;
+      opacity: .028;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ================================================================
+       PAGE LAYOUT & AMBIENT GLOW
+       ================================================================ */
+    .admin-page {
+      position: relative;
+      width: 100%;
+      min-height: calc(100vh - 65px);
+      padding: 48px 72px 96px;
+    }
+
+    .admin-page::before {
+      content: '';
+      position: absolute; top: 0; left: 30%;
+      width: 700px; height: 450px; pointer-events: none;
+      background: radial-gradient(ellipse 60% 50% at 50% 0%,
+        rgba(185,167,255,.07) 0%,
+        rgba(255,118,45,.04) 55%,
+        transparent 100%);
+      z-index: 0;
+    }
+
+    .admin-content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+    }
+
+    /* ================================================================
+       HEADER & BADGE
+       ================================================================ */
+    .admin-header {
+      margin-bottom: 36px;
+    }
+
+    .admin-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 4px 12px 4px 9px; border-radius: 999px;
+      border: 1px solid rgba(255,118,45,.25);
+      background: rgba(255,118,45,.08);
+      font-size: .74rem; font-weight: 700; color: var(--org-s);
+      margin-bottom: 16px;
+    }
+    .badge-pip {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--org); box-shadow: 0 0 6px var(--org);
+    }
+
+    .admin-title {
+      font-family: var(--f-head);
+      font-size: clamp(2rem, 3.4vw, 2.75rem);
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      line-height: 1.1;
+      color: var(--ink);
+      margin-bottom: 10px;
+    }
+
+    .admin-sub {
+      font-size: 1rem;
+      color: var(--ink-2);
+      line-height: 1.6;
+      max-width: 640px;
+    }
+
+    /* ================================================================
+       METRICS STRIP
+       ================================================================ */
+    .metrics-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+
+    .metric-card {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color .2s;
+    }
+    .metric-card:hover {
+      border-color: var(--border+);
+    }
+    .metric-card::after {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(185,167,255,.4), transparent);
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .metric-card:hover::after {
+      opacity: 1;
+    }
+
+    .metric-label {
+      font-size: .78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--ink-3);
+    }
+
+    .metric-val {
+      font-family: var(--f-head);
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+    }
+
+    .metric-meta {
+      font-size: .8rem;
+      color: var(--ink-2);
+    }
+
+    /* ================================================================
+       USERS TABLE CONTAINER
+       ================================================================ */
+    .table-container {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,.25);
+    }
+
+    .table-header-bar {
+      padding: 20px 28px;
+      background: var(--bg-2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .table-header-title {
+      font-family: var(--f-head);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .users-count-chip {
+      font-size: .76rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--border);
+      color: var(--ink-2);
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .qm-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .qm-table th {
+      padding: 16px 28px;
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--ink-3);
+      border-bottom: 1px solid var(--border);
+      background: rgba(20,20,25,.3);
+      white-space: nowrap;
+    }
+
+    .qm-table td {
+      padding: 18px 28px;
+      font-size: .9rem;
+      color: var(--ink-2);
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .qm-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .qm-table tr:hover td {
+      background: rgba(255,255,255,.02);
+      color: var(--ink);
+    }
+
+    .user-id-pill {
+      font-family: var(--f-head);
+      font-size: .78rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+      color: var(--ink-3);
+      display: inline-block;
+    }
+
+    .user-profile-cell {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .user-avatar {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(185,167,255,.2) 0%, rgba(255,118,45,.2) 100%);
+      border: 1px solid rgba(255,255,255,.1);
+      display: grid;
+      place-items: center;
+      font-family: var(--f-head);
+      font-weight: 800;
+      font-size: .88rem;
+      color: var(--ink);
+      flex-shrink: 0;
+    }
+
+    .user-name-text {
+      font-family: var(--f-head);
+      font-size: .94rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .user-email-text {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--ink-2);
+      font-size: .88rem;
+    }
+    .user-email-text svg {
+      color: var(--ink-3);
+    }
+
+    .user-dob-text {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--ink-2);
+      font-size: .88rem;
+    }
+    .user-dob-text svg {
+      color: var(--ink-3);
+    }
+
+    .qual-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(185,167,255,.08);
+      border: 1px solid rgba(185,167,255,.22);
+      color: var(--lav-s);
+      font-size: .82rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* Empty state */
+    .empty-state {
+      padding: 64px 32px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+    .empty-icon {
+      width: 56px; height: 56px;
+      border-radius: 14px;
+      background: rgba(185,167,255,.08);
+      border: 1px solid rgba(185,167,255,.2);
+      display: grid;
+      place-items: center;
+      color: var(--lav);
+    }
+    .empty-state h3 {
+      font-family: var(--f-head);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .empty-state p {
+      color: var(--ink-2);
+      font-size: .9rem;
+      max-width: 360px;
+    }
+
+    @media (max-width: 960px) {
+      .admin-page { padding: 36px 32px 72px; }
+    }
+    @media (max-width: 640px) {
+      .admin-page { padding: 28px 20px 56px; }
+      .qm-table th, .qm-table td { padding: 14px 18px; }
+    }
+  </style>
 </head>
 <body>
-    {%include 'admin_nav.html'%}
-    <div class="qm-page">
-        <div class="qm-header">
-            <h1>Registered users</h1>
-            <p class="qm-text-muted">All users who have signed up on the platform.</p>
+
+  <!-- Shared Admin Glassmorphic Navbar -->
+  {% include 'admin_nav.html' %}
+
+  <main class="admin-page">
+    <div class="admin-content">
+
+      <!-- Header Section -->
+      <header class="admin-header">
+        <div class="admin-badge">
+          <span class="badge-pip" aria-hidden="true"></span>
+          <span>Student Directory</span>
+        </div>
+        <h1 class="admin-title">Registered Learners</h1>
+        <p class="admin-sub">
+          Directory of student accounts enrolled in the Quiz Master platform, with authentication status and academic qualifications.
+        </p>
+      </header>
+
+      <!-- Metrics Strip -->
+      <section class="metrics-strip">
+        <div class="metric-card">
+          <span class="metric-label">Enrolled Learners</span>
+          <span class="metric-val">{{ users|length if users else 0 }}</span>
+          <span class="metric-meta">Active student profiles</span>
         </div>
 
-        <div class="qm-card">
-            <table class="qm-table">
-                <thead>
-                    <tr>
-                        <th style="width:60px">ID</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Date of birth</th>
-                        <th>Qualification</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {%if users%}
-                    {%for user in users%}
-                    <tr>
-                        <td>{{user.id}}</td>
-                        <td>{{user.name}}</td>
-                        <td>{{user.email}}</td>
-                        <td>{{user.dob}}</td>
-                        <td>{{user.qualification}}</td>
-                    </tr>
-                    {%endfor%}
-                    {%else%}
-                    <tr>
-                        <td colspan="5" style="text-align:center;color:var(--ink-muted);padding:40px">No users registered yet.</td>
-                    </tr>
-                    {%endif%}
-                </tbody>
-            </table>
+        <div class="metric-card">
+          <span class="metric-label">Account Role</span>
+          <span class="metric-val">Candidate</span>
+          <span class="metric-meta">Standard quiz-taker privilege</span>
         </div>
+
+        <div class="metric-card">
+          <span class="metric-label">Platform Access</span>
+          <span class="metric-val">100%</span>
+          <span class="metric-meta">Verified credentials</span>
+        </div>
+      </section>
+
+      <!-- Users Table Card -->
+      <div class="table-container">
+        <div class="table-header-bar">
+          <div class="table-header-title">
+            <span>Enrolled Students</span>
+            <span class="users-count-chip">{{ users|length if users else 0 }} total</span>
+          </div>
+        </div>
+
+        {% if users %}
+        <div class="table-wrap">
+          <table class="qm-table">
+            <thead>
+              <tr>
+                <th style="width:70px">ID</th>
+                <th>Learner</th>
+                <th>Email Address</th>
+                <th>Date of Birth</th>
+                <th>Qualification</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for user in users %}
+              <tr>
+                <td>
+                  <span class="user-id-pill">#{{ user.id }}</span>
+                </td>
+                <td>
+                  <div class="user-profile-cell">
+                    <div class="user-avatar" aria-hidden="true">
+                      {{ user.name[:1]|upper if user.name else 'U' }}
+                    </div>
+                    <span class="user-name-text">{{ user.name }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="user-email-text">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    {{ user.email }}
+                  </span>
+                </td>
+                <td>
+                  <span class="user-dob-text">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    {{ user.dob }}
+                  </span>
+                </td>
+                <td>
+                  <span class="qual-chip">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                    {{ user.qualification }}
+                  </span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3>No Registered Students Yet</h3>
+          <p>Learner accounts will appear here automatically as candidates sign up through the registration portal.</p>
+        </div>
+        {% endif %}
+      </div>
+
     </div>
+  </main>
+
 </body>
 </html>

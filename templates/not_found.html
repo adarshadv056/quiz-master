@@ -1,28 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Not found - Quiz Master</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/main.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Not Found &mdash; Quiz Master</title>
+
+  <!-- Typography: Plus Jakarta Sans (Headings) + DM Sans (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #09090b;
+      --bg-1: #0e0e12;
+      --bg-2: #141419;
+      --border: rgba(255,255,255,.07);
+      --border+: rgba(255,255,255,.13);
+      --ink: #f4f4f6;
+      --ink-2: #8a8a9a;
+      --ink-3: #525262;
+      --lav: #B9A7FF;
+      --lav-s: #d4c8ff;
+      --org: #FF762D;
+      --org-s: #ff9152;
+      --lime: #C9EE83;
+
+      --f-head: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --f-body: 'DM Sans', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--f-body);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 9999;
+      pointer-events: none;
+      opacity: .028;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
+    .nf-page {
+      min-height: calc(100vh - 65px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      position: relative;
+    }
+
+    .nf-page::before {
+      content: '';
+      position: absolute;
+      width: 500px; height: 500px; pointer-events: none;
+      background: radial-gradient(circle, rgba(185,167,255,.08) 0%, transparent 70%);
+    }
+
+    .nf-card {
+      background: var(--bg-1);
+      border: 1px solid var(--border+);
+      border-radius: 24px;
+      padding: 56px 40px;
+      text-align: center;
+      max-width: 480px;
+      width: 100%;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
+    }
+
+    .nf-icon {
+      width: 56px; height: 56px;
+      border-radius: 16px;
+      background: rgba(185,167,255,.1);
+      border: 1px solid rgba(185,167,255,.2);
+      display: grid; place-items: center;
+      color: var(--lav-s);
+      margin: 0 auto 20px;
+    }
+
+    .nf-title {
+      font-family: var(--f-head);
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--ink);
+      letter-spacing: -0.025em;
+      margin-bottom: 10px;
+    }
+
+    .nf-desc {
+      font-size: .95rem;
+      color: var(--ink-2);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-family: var(--f-head);
+      font-size: .92rem;
+      font-weight: 700;
+      color: #fff;
+      background: var(--org);
+      border: 1px solid rgba(255,255,255,.15);
+      box-shadow: 0 4px 16px rgba(255,118,45,.28);
+      text-decoration: none;
+      transition: background .2s, transform .15s;
+    }
+    .btn-action:hover {
+      background: var(--org-s);
+      transform: translateY(-1px);
+    }
+  </style>
 </head>
 <body>
-    {%if name=="Admin"%}
-    {%include 'admin_nav.html'%}
-    {%else%}
-    {%include 'user_nav.html'%}
-    {%endif%}
-    <div class="qm-page">
-        <div class="qm-notfound">
-            <h2>{{text}}</h2>
-            {%if name=="Admin"%}
-            <a href="/admin/{{name}}" class="qm-btn qm-btn--primary">Back to dashboard</a>
-            {%else%}
-            <a href="/user/{{name}}" class="qm-btn qm-btn--primary">Back to quizzes</a>
-            {%endif%}
-        </div>
+  {% if name == "Admin" %}
+    {% include 'admin_nav.html' %}
+  {% else %}
+    {% include 'user_nav.html' %}
+  {% endif %}
+
+  <main class="nf-page">
+    <div class="nf-card">
+      <div class="nf-icon" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="8"/><line x1="11" y1="12" x2="11" y2="14"/></svg>
+      </div>
+      <h1 class="nf-title">{{ text }}</h1>
+      <p class="nf-desc">The requested resource or data query could not be located in your academic profile.</p>
+      {% if name == "Admin" %}
+        <a href="/admin/{{ name }}" class="btn-action">
+          Back to Dashboard
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+      {% else %}
+        <a href="/user/{{ name }}" class="btn-action">
+          Back to Quizzes
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+      {% endif %}
     </div>
+  </main>
 </body>
 </html>

@@ -1,53 +1,686 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz results - Quiz Master</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/main.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Results &mdash; Quiz Master</title>
+
+  <!-- Typography: Plus Jakarta Sans (Headings) + DM Sans (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ================================================================
+       DESIGN TOKENS — Source of Truth from Landing Page
+       ================================================================ */
+    :root {
+      --bg: #09090b;
+      --bg-1: #0e0e12;
+      --bg-2: #141419;
+      --bg-3: #1a1a22;
+      --border: rgba(255,255,255,.07);
+      --border+: rgba(255,255,255,.13);
+      --border++: rgba(255,255,255,.22);
+      --ink: #f4f4f6;
+      --ink-2: #8a8a9a;
+      --ink-3: #525262;
+
+      /* Brand accents */
+      --lav: #B9A7FF;
+      --lav-s: #d4c8ff;
+      --org: #FF762D;
+      --org-s: #ff9152;
+      --lime: #C9EE83;
+      --red: #FF6F76;
+
+      --f-head: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --f-body: 'DM Sans', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--f-body);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* Film grain texture */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 9999;
+      pointer-events: none;
+      opacity: .028;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ================================================================
+       PAGE WRAPPER
+       ================================================================ */
+    .result-page {
+      position: relative;
+      width: 100%;
+      min-height: calc(100vh - 65px);
+      padding: 48px 72px 96px;
+    }
+
+    /* Ambient workspace background glow */
+    .result-page::before {
+      content: '';
+      position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 900px; height: 500px; pointer-events: none;
+      background: radial-gradient(ellipse 60% 50% at 50% 0%,
+        rgba(201,238,131,.08) 0%,
+        rgba(185,167,255,.05) 55%,
+        transparent 100%);
+      z-index: 0;
+    }
+
+    .result-content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    /* ================================================================
+       HERO SCORE BANNER CARD
+       ================================================================ */
+    .result-banner {
+      background: var(--bg-1);
+      border: 1px solid var(--border+);
+      border-radius: 24px;
+      padding: 36px 44px;
+      margin-bottom: 32px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 36px;
+      align-items: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Subtle top accent gradient */
+    .result-banner::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(to right,
+        var(--lime) 0%,
+        var(--lav) 50%,
+        var(--org) 100%);
+    }
+
+    .rb-left {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .rb-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px 4px 9px;
+      border-radius: 999px;
+      font-size: .74rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      align-self: flex-start;
+    }
+    .rb-badge.lime {
+      background: rgba(201,238,131,.08);
+      border: 1px solid rgba(201,238,131,.25);
+      color: var(--lime);
+    }
+    .rb-badge.lav {
+      background: rgba(185,167,255,.08);
+      border: 1px solid rgba(185,167,255,.25);
+      color: var(--lav-s);
+    }
+    .rb-badge.red {
+      background: rgba(255,111,118,.08);
+      border: 1px solid rgba(255,111,118,.25);
+      color: var(--red);
+    }
+    .badge-pip {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: currentColor; box-shadow: 0 0 6px currentColor;
+    }
+
+    .rb-subject-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .76rem;
+      font-weight: 700;
+      color: var(--lav-s);
+      margin-bottom: 8px;
+    }
+
+    .rb-title {
+      font-family: var(--f-head);
+      font-size: clamp(1.8rem, 3vw, 2.3rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 10px;
+    }
+
+    .rb-desc {
+      font-size: .95rem;
+      color: var(--ink-2);
+      line-height: 1.5;
+    }
+
+    /* Score visual right box */
+    .rb-score-box {
+      background: rgba(14,14,18,.8);
+      border: 1px solid var(--border+);
+      border-radius: 20px;
+      padding: 24px 32px;
+      text-align: center;
+      min-width: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,.3);
+    }
+
+    .rb-score-num {
+      font-family: var(--f-head);
+      font-size: 3.6rem;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.04em;
+      margin-bottom: 4px;
+    }
+    .rb-score-num.lime { color: var(--lime); }
+    .rb-score-num.lav { color: var(--lav-s); }
+    .rb-score-num.red { color: var(--red); }
+
+    .rb-score-ratio {
+      font-size: .84rem;
+      font-weight: 600;
+      color: var(--ink-2);
+      margin-bottom: 10px;
+    }
+
+    .rb-grade-tag {
+      font-family: var(--f-head);
+      font-size: .72rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 6px;
+      letter-spacing: .02em;
+    }
+    .rb-grade-tag.lime { background: rgba(201,238,131,.12); color: var(--lime); border: 1px solid rgba(201,238,131,.25); }
+    .rb-grade-tag.lav { background: rgba(185,167,255,.12); color: var(--lav-s); border: 1px solid rgba(185,167,255,.25); }
+    .rb-grade-tag.red { background: rgba(255,111,118,.12); color: var(--red); border: 1px solid rgba(255,111,118,.25); }
+
+    /* ================================================================
+       METRICS 3-COLUMN STRIP
+       ================================================================ */
+    .result-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .metric-card {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .metric-val {
+      font-family: var(--f-head);
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+    .metric-val.lime { color: var(--lime); }
+    .metric-val.red { color: var(--red); }
+    .metric-val.lav { color: var(--lav-s); }
+    .metric-label {
+      font-size: .8rem;
+      color: var(--ink-3);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      font-weight: 600;
+    }
+
+    /* ================================================================
+       QUESTION BREAKDOWN TABLE CARD
+       ================================================================ */
+    .breakdown-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border+);
+      border-radius: 22px;
+      overflow: hidden;
+      margin-bottom: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+    }
+
+    .breakdown-header {
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .breakdown-title {
+      font-family: var(--f-head);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.02em;
+    }
+
+    .breakdown-counter {
+      font-size: .74rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.07);
+      color: var(--ink-2);
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .breakdown-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .breakdown-table th {
+      background: rgba(255,255,255,.02);
+      padding: 16px 24px;
+      font-family: var(--f-head);
+      font-size: .75rem;
+      font-weight: 700;
+      color: var(--ink-3);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .breakdown-table td {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      font-size: .9rem;
+      color: var(--ink-2);
+      vertical-align: middle;
+    }
+    .breakdown-table tr:last-child td {
+      border-bottom: none;
+    }
+    .breakdown-table tr:hover td {
+      background: rgba(255,255,255,.02);
+    }
+
+    .q-num-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      font-family: var(--f-head);
+      font-weight: 700;
+      font-size: .82rem;
+      color: var(--ink);
+    }
+
+    .q-title-text {
+      color: var(--ink);
+      font-weight: 500;
+      line-height: 1.45;
+    }
+
+    /* Option key badge pills */
+    .opt-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-family: var(--f-head);
+      font-size: .8rem;
+      font-weight: 700;
+    }
+    .opt-chip.correct {
+      background: rgba(201,238,131,.1);
+      border: 1px solid rgba(201,238,131,.25);
+      color: var(--lime);
+    }
+    .opt-chip.user-ok {
+      background: rgba(201,238,131,.1);
+      border: 1px solid rgba(201,238,131,.25);
+      color: var(--lime);
+    }
+    .opt-chip.user-bad {
+      background: rgba(255,111,118,.1);
+      border: 1px solid rgba(255,111,118,.25);
+      color: var(--red);
+    }
+    .opt-chip.unattempted {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.09);
+      color: var(--ink-3);
+      font-weight: 500;
+    }
+
+    /* Status badge pill */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-family: var(--f-head);
+      font-size: .75rem;
+      font-weight: 700;
+    }
+    .status-badge.ok {
+      background: rgba(201,238,131,.12);
+      border: 1px solid rgba(201,238,131,.25);
+      color: var(--lime);
+    }
+    .status-badge.bad {
+      background: rgba(255,111,118,.12);
+      border: 1px solid rgba(255,111,118,.25);
+      color: var(--red);
+    }
+
+    /* ================================================================
+       ACTION BUTTONS FOOTER
+       ================================================================ */
+    .result-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .ra-left, .ra-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-p {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 26px;
+      border-radius: 12px;
+      font-family: var(--f-head);
+      font-size: .92rem;
+      font-weight: 700;
+      color: #fff;
+      background: var(--org);
+      border: 1px solid rgba(255,255,255,.15);
+      box-shadow: 0 4px 16px rgba(255,118,45,.28);
+      transition: background .2s, transform .15s;
+    }
+    .btn-p:hover {
+      background: var(--org-s);
+      transform: translateY(-1px);
+    }
+
+    .btn-g {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-family: var(--f-head);
+      font-size: .88rem;
+      font-weight: 600;
+      color: var(--ink-2);
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--border+);
+      transition: color .15s, background .15s, border-color .15s;
+    }
+    .btn-g:hover {
+      color: var(--ink);
+      background: rgba(255,255,255,.09);
+      border-color: rgba(255,255,255,.2);
+    }
+
+    /* ================================================================
+       RESPONSIVE
+       ================================================================ */
+    @media (max-width: 860px) {
+      .result-page {
+        padding: 32px 24px 64px;
+      }
+      .result-banner {
+        grid-template-columns: 1fr;
+        padding: 28px;
+      }
+      .rb-score-box {
+        width: 100%;
+      }
+      .result-metrics {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .result-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .ra-left, .ra-right {
+        flex-direction: column;
+        width: 100%;
+      }
+      .btn-p, .btn-g {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
 </head>
 <body>
-    {%include 'user_nav.html'%}
-    <div class="qm-page">
-        <div class="qm-card qm-card--lifted" style="max-width:760px;margin:0 auto">
-            <div class="qm-results-header">
-                <h2>Quiz completed</h2>
-                <div class="qm-score-big">{{ scores[-1].total_score }}/{{ total_score }}</div>
-                <p class="qm-text-muted">Here's how each question went.</p>
+
+  <!-- Top Navigation Bar -->
+  {% include 'user_nav.html' %}
+
+  {# Calculation of points and percentages safely #}
+  {% set latest_score = scores[-1] if (scores and scores | length > 0) else None %}
+  {% set earned = latest_score.total_score if latest_score else 0 %}
+  {% set max_score = total_score if total_score > 0 else (latest_score.total_questions if latest_score else 1) %}
+  {% set pct = (((earned / max_score) * 100) | round(1)) if max_score > 0 else 0 %}
+  {% set missed = max_score - earned %}
+
+  {# Color category based on percentage #}
+  {% if pct >= 80 %}
+    {% set theme = 'lime' %}
+    {% set feedback = 'Mastery Achieved &middot; Excellent retention of concepts' %}
+    {% set grade_title = 'Passed with Mastery' %}
+  {% elif pct >= 60 %}
+    {% set theme = 'lav' %}
+    {% set feedback = 'Proficient Attempt &middot; Good grasp of core fundamentals' %}
+    {% set grade_title = 'Passed' %}
+  {% else %}
+    {% set theme = 'red' %}
+    {% set feedback = 'Review Recommended &middot; Revisit chapter materials' %}
+    {% set grade_title = 'Needs Review' %}
+  {% endif %}
+
+  <main class="result-page">
+    <div class="result-content">
+
+      <!-- Hero Result Banner -->
+      <section class="result-banner">
+        <div class="rb-left">
+          <div class="rb-badge {{ theme }}">
+            <span class="badge-pip"></span>
+            <span>Assessment Complete</span>
+          </div>
+
+          {% if latest_score and latest_score.quiz and latest_score.quiz.chapter and latest_score.quiz.chapter.subject %}
+            <div class="rb-subject-chip">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/></svg>
+              <span>{{ latest_score.quiz.chapter.subject.name }} &middot; {{ latest_score.quiz.chapter.name }}</span>
             </div>
-            <table class="qm-table">
-                <thead>
-                    <tr>
-                        <th style="width:110px">Question</th>
-                        <th>Title</th>
-                        <th style="text-align:center">Correct</th>
-                        <th style="text-align:center">Your answer</th>
-                        <th style="text-align:center;width:80px">Result</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {%for q_id, result in results.items()%}
-                    <tr>
-                        <td>{{result.question_no}}</td>
-                        <td class="truncate">{{result.question_title}}</td>
-                        <td style="text-align:center">{{result.correct_option}}</td>
-                        <td style="text-align:center">{{result.user_option}}</td>
-                        <td style="text-align:center">
-                            <span class="{% if result.score == 1 %}qm-result-correct{% else %}qm-result-incorrect{% endif %}">
-                                {% if result.score == 1 %}Correct{% else %}Wrong{% endif %}
-                            </span>
-                        </td>
-                    </tr>
-                    {%endfor%}
-                </tbody>
-            </table>
-            <div class="qm-card__footer">
-                <a href="/user/{{name}}" class="qm-btn qm-btn--primary">Back to quizzes</a>
-                <a href="/user/view/scores/{{name}}" class="qm-btn qm-btn--secondary">View all scores</a>
-            </div>
+          {% endif %}
+
+          <h1 class="rb-title">
+            {% if latest_score and latest_score.quiz and latest_score.quiz.chapter %}
+              {{ latest_score.quiz.chapter.name }}
+            {% else %}
+              Quiz Assessment Results
+            {% endif %}
+          </h1>
+
+          <p class="rb-desc">{{ feedback }}</p>
         </div>
+
+        <!-- Big Score Visual Display -->
+        <div class="rb-score-box">
+          <div class="rb-score-num {{ theme }}">{{ pct }}%</div>
+          <div class="rb-score-ratio">{{ earned }} of {{ max_score }} correct</div>
+          <span class="rb-grade-tag {{ theme }}">{{ grade_title }}</span>
+        </div>
+      </section>
+
+      <!-- 3 Key Metric Stats -->
+      <section class="result-metrics" aria-label="Score performance metrics">
+        <div class="metric-card">
+          <span class="metric-val lime">{{ earned }}</span>
+          <span class="metric-label">Correct Answers</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-val red">{{ missed }}</span>
+          <span class="metric-label">Incorrect or Missed</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-val lav">{{ pct }}%</span>
+          <span class="metric-label">Accuracy Rate</span>
+        </div>
+      </section>
+
+      <!-- Question-by-Question Verification Table -->
+      <div class="breakdown-card">
+        <div class="breakdown-header">
+          <h2 class="breakdown-title">
+            <span>Question Breakdown</span>
+            <span class="breakdown-counter">{{ results | length }} Questions</span>
+          </h2>
+        </div>
+
+        <div class="table-wrap">
+          <table class="breakdown-table">
+            <thead>
+              <tr>
+                <th style="width: 70px;">Q#</th>
+                <th>Question</th>
+                <th style="text-align: center; width: 140px;">Correct Answer</th>
+                <th style="text-align: center; width: 140px;">Your Choice</th>
+                <th style="text-align: center; width: 120px;">Outcome</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for q_id, result in results.items() %}
+                {# Option key letter mapping #}
+                {% set opt_keys = {'1':'A', '2':'B', '3':'C', '4':'D', 1:'A', 2:'B', 3:'C', 4:'D'} %}
+                {% set correct_letter = opt_keys.get(result.correct_option, result.correct_option) %}
+                {% set user_letter = opt_keys.get(result.user_option, result.user_option) %}
+
+                <tr>
+                  <td>
+                    <span class="q-num-pill">Q{{ result.question_no }}</span>
+                  </td>
+                  <td>
+                    <div class="q-title-text">{{ result.question_title }}</div>
+                  </td>
+                  <td style="text-align: center;">
+                    <span class="opt-chip correct">
+                      Option {{ correct_letter }}
+                    </span>
+                  </td>
+                  <td style="text-align: center;">
+                    {% if result.user_option in ['Unattempted', 'NONE', None, ''] %}
+                      <span class="opt-chip unattempted">Unattempted</span>
+                    {% elif result.score == 1 %}
+                      <span class="opt-chip user-ok">Option {{ user_letter }}</span>
+                    {% else %}
+                      <span class="opt-chip user-bad">Option {{ user_letter }}</span>
+                    {% endif %}
+                  </td>
+                  <td style="text-align: center;">
+                    {% if result.score == 1 %}
+                      <span class="status-badge ok">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Correct
+                      </span>
+                    {% else %}
+                      <span class="status-badge bad">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        Wrong
+                      </span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Action Navigation Links -->
+      <div class="result-actions">
+        <div class="ra-left">
+          <a href="/user/{{ name }}" class="btn-p">
+            Browse More Quizzes
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+        </div>
+        <div class="ra-right">
+          <a href="/user/view/scores/{{ name }}" class="btn-g">
+            View All Scores
+          </a>
+          <a href="/user/user_summary/{{ name }}" class="btn-g">
+            Analytics Summary
+          </a>
+        </div>
+      </div>
+
     </div>
+  </main>
+
 </body>
 </html>

@@ -1,30 +1,428 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin summary - Quiz Master</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/main.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Summary &mdash; Quiz Master</title>
+
+  <!-- Typography: Plus Jakarta Sans (Headings) + DM Sans (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ================================================================
+       DESIGN TOKENS — Source of Truth from Landing Page
+       ================================================================ */
+    :root {
+      --bg: #09090b;
+      --bg-1: #0e0e12;
+      --bg-2: #141419;
+      --bg-3: #1a1a22;
+      --border: rgba(255,255,255,.07);
+      --border+: rgba(255,255,255,.13);
+      --border++: rgba(255,255,255,.22);
+      --ink: #f4f4f6;
+      --ink-2: #8a8a9a;
+      --ink-3: #525262;
+
+      /* Brand accents */
+      --lav: #B9A7FF;
+      --lav-s: #d4c8ff;
+      --org: #FF762D;
+      --org-s: #ff9152;
+      --lime: #C9EE83;
+      --red: #FF6F76;
+
+      --f-head: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --f-body: 'DM Sans', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--f-body);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* Film grain texture */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 9999;
+      pointer-events: none;
+      opacity: .028;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ================================================================
+       PAGE LAYOUT & AMBIENT GLOW
+       ================================================================ */
+    .admin-page {
+      position: relative;
+      width: 100%;
+      min-height: calc(100vh - 65px);
+      padding: 48px 72px 96px;
+    }
+
+    .admin-page::before {
+      content: '';
+      position: absolute; top: 0; left: 20%;
+      width: 760px; height: 480px; pointer-events: none;
+      background: radial-gradient(ellipse 60% 50% at 50% 0%,
+        rgba(255,118,45,.06) 0%,
+        rgba(185,167,255,.05) 55%,
+        transparent 100%);
+      z-index: 0;
+    }
+
+    .admin-content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+    }
+
+    /* ================================================================
+       HEADER & BADGE
+       ================================================================ */
+    .admin-header {
+      margin-bottom: 36px;
+    }
+
+    .admin-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 4px 12px 4px 9px; border-radius: 999px;
+      border: 1px solid rgba(255,118,45,.25);
+      background: rgba(255,118,45,.08);
+      font-size: .74rem; font-weight: 700; color: var(--org-s);
+      margin-bottom: 16px;
+    }
+    .badge-pip {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--org); box-shadow: 0 0 6px var(--org);
+    }
+
+    .admin-title {
+      font-family: var(--f-head);
+      font-size: clamp(2rem, 3.4vw, 2.75rem);
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      line-height: 1.1;
+      color: var(--ink);
+      margin-bottom: 10px;
+    }
+
+    .admin-sub {
+      font-size: 1rem;
+      color: var(--ink-2);
+      line-height: 1.6;
+      max-width: 680px;
+    }
+
+    /* ================================================================
+       CHARTS GRID
+       ================================================================ */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-bottom: 36px;
+    }
+
+    .chart-card {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 24px rgba(0,0,0,.25);
+      transition: border-color .2s;
+    }
+    .chart-card:hover {
+      border-color: var(--border+);
+    }
+
+    .chart-card__header {
+      padding: 22px 28px;
+      background: var(--bg-2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .chart-card__title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .chart-card__title {
+      font-family: var(--f-head);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+    }
+
+    .chart-card__subtitle {
+      font-size: .84rem;
+      color: var(--ink-2);
+    }
+
+    .chart-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: .74rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .chart-badge--lime {
+      background: rgba(201,238,131,.1);
+      border: 1px solid rgba(201,238,131,.25);
+      color: var(--lime);
+    }
+    .chart-badge--lav {
+      background: rgba(185,167,255,.1);
+      border: 1px solid rgba(185,167,255,.25);
+      color: var(--lav);
+    }
+
+    .chart-card__body {
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: var(--bg-1);
+      aspect-ratio: 7 / 4.8;
+      width: 100%;
+      box-sizing: border-box;
+      flex: 1;
+    }
+
+    .chart-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 12px;
+      display: block;
+      border: 1px solid rgba(255,255,255,.05);
+    }
+
+    .chart-card__footer {
+      padding: 14px 28px;
+      background: var(--bg-2);
+      border-top: 1px solid var(--border);
+      font-size: .84rem;
+      color: var(--ink-3);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .chart-card__footer svg {
+      color: var(--org);
+      flex-shrink: 0;
+    }
+
+    /* ================================================================
+       ACTION / OPERATIONS STRIP
+       ================================================================ */
+    .ops-section {
+      margin-top: 12px;
+    }
+
+    .ops-title {
+      font-family: var(--f-head);
+      font-size: .84rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--ink-3);
+      margin-bottom: 14px;
+    }
+
+    .ops-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .ops-card {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all .2s;
+    }
+    .ops-card:hover {
+      border-color: var(--border+);
+      background: var(--bg-2);
+      transform: translateY(-2px);
+    }
+
+    .ops-card__info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .ops-card__name {
+      font-family: var(--f-head);
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .ops-card__desc {
+      font-size: .82rem;
+      color: var(--ink-2);
+    }
+
+    .ops-arrow {
+      color: var(--ink-3);
+      transition: color .2s, transform .2s;
+    }
+    .ops-card:hover .ops-arrow {
+      color: var(--lav);
+      transform: translateX(3px);
+    }
+
+    @media (max-width: 960px) {
+      .admin-page { padding: 36px 32px 72px; }
+      .charts-grid { grid-template-columns: 1fr; }
+      .ops-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .admin-page { padding: 28px 20px 56px; }
+      .chart-card__header { padding: 18px 20px; }
+      .chart-card__body { padding: 16px; }
+      .chart-card__footer { padding: 12px 20px; }
+    }
+  </style>
 </head>
 <body>
-    {%include 'admin_nav.html'%}
-    <div class="qm-page">
-        <div class="qm-header">
-            <h1>Platform summary</h1>
-            <p class="qm-text-muted">How users are performing across all subjects.</p>
+
+  <!-- Shared Admin Glassmorphic Navbar -->
+  {% include 'admin_nav.html' %}
+
+  <main class="admin-page">
+    <div class="admin-content">
+
+      <!-- Header Section -->
+      <header class="admin-header">
+        <div class="admin-badge">
+          <span class="badge-pip" aria-hidden="true"></span>
+          <span>Platform Analytics & Benchmarks</span>
         </div>
-        <div class="qm-charts">
-            <div class="qm-chart-card">
-                <div class="qm-chart-card__title">Highest score by subject</div>
-                <img src="/static/images/admin_barchart.jpeg" alt="Bar chart showing highest scores per subject" draggable="false">
+        <h1 class="admin-title">Platform Performance Summary</h1>
+        <p class="admin-sub">
+          Aggregated assessment telemetry tracking maximum score achievements and student engagement distributions across all academic disciplines.
+        </p>
+      </header>
+
+      <!-- Charts Grid -->
+      <section class="charts-grid">
+
+        <!-- Chart 1: Highest Scores per Subject -->
+        <article class="chart-card">
+          <div class="chart-card__header">
+            <div class="chart-card__title-group">
+              <h2 class="chart-card__title">Highest Score by Subject</h2>
+              <p class="chart-card__subtitle">Top scores recorded across curriculum subjects</p>
             </div>
-            <div class="qm-chart-card">
-                <div class="qm-chart-card__title">User attempts by subject</div>
-                <img src="/static/images/admin_bullseye_chart.jpeg" alt="Chart showing user attempts per subject" draggable="false">
+            <span class="chart-badge chart-badge--lime">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              High Benchmarks
+            </span>
+          </div>
+
+          <div class="chart-card__body">
+            <img class="chart-img" src="/static/images/admin_barchart.jpeg" alt="Bar chart depicting highest score by subject" draggable="false">
+          </div>
+
+          <div class="chart-card__footer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>Peak student scores indicate domain mastery and quiz calibration difficulty.</span>
+          </div>
+        </article>
+
+        <!-- Chart 2: User Attempts by Subject -->
+        <article class="chart-card">
+          <div class="chart-card__header">
+            <div class="chart-card__title-group">
+              <h2 class="chart-card__title">Subject-wise User Attempts</h2>
+              <p class="chart-card__subtitle">Volume distribution of student examination attempts</p>
             </div>
+            <span class="chart-badge chart-badge--lav">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+              Engagement Volume
+            </span>
+          </div>
+
+          <div class="chart-card__body">
+            <img class="chart-img" src="/static/images/admin_bullseye_chart.jpeg" alt="Concentric chart showing user attempts by subject" draggable="false">
+          </div>
+
+          <div class="chart-card__footer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>Concentric attempt rings display student participation depth across active domains.</span>
+          </div>
+        </article>
+
+      </section>
+
+      <!-- Platform Operations Quick Access -->
+      <section class="ops-section">
+        <h3 class="ops-title">Curriculum Operations Shortcuts</h3>
+        <div class="ops-grid">
+          <a href="/admin/{{ name }}" class="ops-card">
+            <div class="ops-card__info">
+              <span class="ops-card__name">Curriculum Command</span>
+              <span class="ops-card__desc">Manage subjects, chapters & topics</span>
+            </div>
+            <svg class="ops-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </a>
+
+          <a href="/admin/quiz_management/{{ name }}" class="ops-card">
+            <div class="ops-card__info">
+              <span class="ops-card__name">Quiz Management</span>
+              <span class="ops-card__desc">Inspect active exams & question pools</span>
+            </div>
+            <svg class="ops-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </a>
+
+          <a href="/admin/users/{{ name }}" class="ops-card">
+            <div class="ops-card__info">
+              <span class="ops-card__name">Student Directory</span>
+              <span class="ops-card__desc">Review registered learners & credentials</span>
+            </div>
+            <svg class="ops-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </a>
         </div>
+      </section>
+
     </div>
+  </main>
+
 </body>
 </html>

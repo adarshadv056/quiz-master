@@ -1,15 +1,228 @@
-<nav class="qm-nav">
-    <div class="qm-nav__brand"><span>QM</span> {{name}}</div>
-    <button class="qm-nav__toggler" onclick="this.nextElementSibling.classList.toggle('show');this.nextElementSibling.nextElementSibling.classList.toggle('show')" aria-label="Toggle navigation">&#9776;</button>
+<style>
+  /* ================================================================
+     USER NAVBAR — Dark Workspace Source of Truth
+     ================================================================ */
+  .qm-nav {
+    position: sticky; top: 0; z-index: 500;
+    width: 100%;
+    background: rgba(10, 10, 12, 0.85);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 72px;
+    gap: 20px;
+  }
+
+  .qm-nav__left {
+    display: flex; align-items: center; gap: 20px;
+  }
+
+  .qm-nav__brand {
+    display: flex; align-items: center; gap: 10px;
+    color: #f4f4f6; text-decoration: none;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-weight: 800; font-size: 0.95rem;
+    letter-spacing: -0.02em;
+  }
+  .qm-nav__logo-mark {
+    width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+    background: linear-gradient(135deg, #B9A7FF 0%, #FF762D 100%);
+    display: grid; place-items: center;
+    font-size: 0.62rem; font-weight: 900; color: #0a0a0c;
+  }
+
+  /* User identity pill */
+  .qm-user-pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 4px 10px 4px 8px; border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.76rem; font-weight: 600; color: #d4c8ff;
+  }
+  .qm-user-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #C9EE83; box-shadow: 0 0 6px #C9EE83;
+  }
+
+  /* Center Nav Links */
+  .qm-nav__links {
+    display: flex; align-items: center; gap: 4px;
+    list-style: none; margin: 0; padding: 0;
+  }
+  .qm-nav__link {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 0.86rem; font-weight: 500;
+    color: #8a8a9a; padding: 7px 14px; border-radius: 999px;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+  }
+  .qm-nav__link:hover {
+    color: #f4f4f6;
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .qm-nav__link.active {
+    color: #f4f4f6;
+    background: rgba(185, 167, 255, 0.12);
+    border-color: rgba(185, 167, 255, 0.28);
+    font-weight: 600;
+  }
+
+  /* Right Tools: Search & Logout */
+  .qm-nav__right {
+    display: flex; align-items: center; gap: 14px;
+  }
+
+  .qm-nav__search {
+    position: relative;
+    display: flex; align-items: center;
+  }
+  .qm-nav__search-icon {
+    position: absolute; left: 12px;
+    color: #525262; pointer-events: none;
+    transition: color 0.2s;
+  }
+  .qm-nav__search input[type="search"] {
+    background: rgba(20, 20, 25, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    padding: 7px 34px 7px 34px;
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 0.82rem;
+    color: #f4f4f6;
+    width: 220px;
+    transition: width 0.25s, border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+  .qm-nav__search input[type="search"]::placeholder {
+    color: #525262;
+  }
+  .qm-nav__search input[type="search"]:focus {
+    width: 270px;
+    outline: none;
+    background: rgba(25, 25, 32, 0.95);
+    border-color: rgba(185, 167, 255, 0.5);
+    box-shadow: 0 0 0 3px rgba(185, 167, 255, 0.12);
+  }
+  .qm-nav__search:focus-within .qm-nav__search-icon {
+    color: #d4c8ff;
+  }
+  .qm-nav__search-btn {
+    position: absolute; right: 5px;
+    background: transparent; border: none;
+    color: #8a8a9a; cursor: pointer;
+    padding: 4px; display: grid; place-items: center;
+    border-radius: 50%;
+    transition: color 0.15s;
+  }
+  .qm-nav__search-btn:hover { color: #f4f4f6; }
+
+  /* Sign out pill button */
+  .qm-nav__logout {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 0.78rem; font-weight: 700;
+    color: #8a8a9a;
+    padding: 6px 14px; border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    text-decoration: none;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+  }
+  .qm-nav__logout:hover {
+    color: #FF6F76;
+    background: rgba(255, 111, 118, 0.08);
+    border-color: rgba(255, 111, 118, 0.25);
+  }
+
+  /* Mobile Toggler */
+  .qm-nav__toggler {
+    display: none;
+    background: transparent; border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px; padding: 6px 10px;
+    color: #f4f4f6; cursor: pointer;
+  }
+
+  @media (max-width: 960px) {
+    .qm-nav { padding: 12px 32px; }
+    .qm-nav__search input[type="search"] { width: 180px; }
+    .qm-nav__search input[type="search"]:focus { width: 220px; }
+  }
+
+  @media (max-width: 768px) {
+    .qm-nav {
+      padding: 12px 20px;
+      flex-wrap: wrap;
+    }
+    .qm-nav__toggler { display: block; }
+    .qm-nav__menu {
+      display: none;
+      width: 100%;
+      flex-direction: column;
+      gap: 16px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .qm-nav__menu.show { display: flex; }
+    .qm-nav__links { flex-direction: column; width: 100%; gap: 6px; }
+    .qm-nav__link { width: 100%; text-align: left; }
+    .qm-nav__right { width: 100%; justify-content: space-between; }
+    .qm-nav__search { flex: 1; }
+    .qm-nav__search input[type="search"] { width: 100%; }
+    .qm-nav__search input[type="search"]:focus { width: 100%; }
+  }
+</style>
+
+<nav class="qm-nav" role="navigation" aria-label="User Navigation">
+  <div class="qm-nav__left">
+    <a href="/user/{{name}}" class="qm-nav__brand">
+      <div class="qm-nav__logo-mark">QM</div>
+      <span>Quiz Master</span>
+    </a>
+
+    <div class="qm-user-pill">
+      <span class="qm-user-dot" aria-hidden="true"></span>
+      <span>{{name}}</span>
+    </div>
+  </div>
+
+  <button class="qm-nav__toggler" onclick="document.getElementById('qmNavMenu').classList.toggle('show')" aria-label="Toggle navigation">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+  </button>
+
+  <div class="qm-nav__menu" id="qmNavMenu" style="display:flex;align-items:center;gap:24px;">
     <ul class="qm-nav__links">
-        <li><a href="/user/{{name}}">Quizzes</a></li>
-        <li><a href="/user/view/scores/{{name}}">Scores</a></li>
-        <li><a href="/user/user_summary/{{name}}">Summary</a></li>
-        <li><a href="/logout" class="nav-logout">Sign out</a></li>
+      <li>
+        <a href="/user/{{name}}" class="qm-nav__link {% if request.path == '/user/' ~ name or current_page == 'home' %}active{% endif %}">
+          Quizzes
+        </a>
+      </li>
+      <li>
+        <a href="/user/view/scores/{{name}}" class="qm-nav__link {% if 'scores' in request.path or current_page == 'scores' %}active{% endif %}">
+          Scores
+        </a>
+      </li>
+      <li>
+        <a href="/user/user_summary/{{name}}" class="qm-nav__link {% if 'user_summary' in request.path %}active{% endif %}">
+          Summary
+        </a>
+      </li>
     </ul>
-    <form class="qm-nav__search" role="search" action="/user/search/{{name}}" method="post">
+
+    <div class="qm-nav__right">
+      <form class="qm-nav__search" role="search" action="/user/search/{{name}}" method="post">
+        <svg class="qm-nav__search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
         <input type="search" name="search" placeholder="Search quizzes..." aria-label="Search" value="{{ request.form.get('search', '') }}">
         <input type="hidden" name="page" value="{{ (current_page if current_page else ('scores' if 'scores' in request.path else 'home')) | trim }}">
-        <button type="submit">Search</button>
-    </form>
+        <button type="submit" class="qm-nav__search-btn" aria-label="Submit search">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      </form>
+
+      <a href="/logout" class="qm-nav__logout" title="Sign out of Quiz Master">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+        Sign out
+      </a>
+    </div>
+  </div>
 </nav>

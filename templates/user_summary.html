@@ -1,30 +1,463 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My summary - Quiz Master</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/main.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Learning Summary &mdash; Quiz Master</title>
+
+  <!-- Typography: Plus Jakarta Sans (Headings) + DM Sans (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ================================================================
+       DESIGN TOKENS — Source of Truth from Landing Page
+       ================================================================ */
+    :root {
+      --bg: #09090b;
+      --bg-1: #0e0e12;
+      --bg-2: #141419;
+      --bg-3: #1a1a22;
+      --border: rgba(255,255,255,.07);
+      --border+: rgba(255,255,255,.13);
+      --border++: rgba(255,255,255,.22);
+      --ink: #f4f4f6;
+      --ink-2: #8a8a9a;
+      --ink-3: #525262;
+
+      /* Brand accents */
+      --lav: #B9A7FF;
+      --lav-s: #d4c8ff;
+      --org: #FF762D;
+      --org-s: #ff9152;
+      --lime: #C9EE83;
+      --red: #FF6F76;
+
+      --f-head: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --f-body: 'DM Sans', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--f-body);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* Film grain texture */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 9999;
+      pointer-events: none;
+      opacity: .028;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ================================================================
+       PAGE WRAPPER
+       ================================================================ */
+    .summary-page {
+      position: relative;
+      width: 100%;
+      min-height: calc(100vh - 65px);
+      padding: 48px 72px 96px;
+    }
+
+    /* Ambient workspace background glow */
+    .summary-page::before {
+      content: '';
+      position: absolute; top: 0; left: 35%;
+      width: 800px; height: 500px; pointer-events: none;
+      background: radial-gradient(ellipse 60% 50% at 50% 0%,
+        rgba(185,167,255,.07) 0%,
+        rgba(255,118,45,.03) 55%,
+        transparent 100%);
+      z-index: 0;
+    }
+
+    .summary-content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+    }
+
+    /* ================================================================
+       HEADER SECTION
+       ================================================================ */
+    .summary-header {
+      max-width: 680px;
+      margin-bottom: 44px;
+    }
+
+    .summary-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 4px 12px 4px 9px; border-radius: 999px;
+      border: 1px solid rgba(185,167,255,.22);
+      background: rgba(185,167,255,.07);
+      font-size: .74rem; font-weight: 600; color: var(--lav-s);
+      margin-bottom: 16px;
+    }
+    .badge-pip {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--lime); box-shadow: 0 0 6px var(--lime);
+    }
+
+    .summary-title {
+      font-family: var(--f-head);
+      font-size: clamp(2.2rem, 3.8vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      line-height: 1.08;
+      color: var(--ink);
+      margin-bottom: 12px;
+    }
+
+    .summary-sub {
+      font-size: 1.02rem;
+      color: var(--ink-2);
+      line-height: 1.6;
+    }
+
+    /* ================================================================
+       ANALYTICS CHARTS GRID
+       ================================================================ */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      margin-bottom: 40px;
+      width: 100%;
+    }
+
+    .chart-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 32px 28px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+      transition: border-color .25s, transform .25s cubic-bezier(.16,1,.3,1);
+    }
+    .chart-card:hover {
+      border-color: var(--border+);
+      transform: translateY(-3px);
+    }
+
+    .chart-card__header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    .chart-card__title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .chart-card__title {
+      font-family: var(--f-head);
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .chart-icon {
+      color: var(--lav);
+      opacity: .85;
+      flex-shrink: 0;
+    }
+
+    .chart-card__desc {
+      font-size: .86rem;
+      color: var(--ink-2);
+      line-height: 1.5;
+    }
+
+    .chart-pill {
+      font-size: .7rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 7px;
+      flex-shrink: 0;
+    }
+    .chart-pill.lav {
+      background: rgba(185,167,255,.1);
+      border: 1px solid rgba(185,167,255,.2);
+      color: var(--lav-s);
+    }
+    .chart-pill.lime {
+      background: rgba(201,238,131,.1);
+      border: 1px solid rgba(201,238,131,.2);
+      color: var(--lime);
+    }
+
+    /* Chart Frame - Guaranteed Identical Dimensions */
+    .chart-frame {
+      margin-top: 20px;
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 7 / 4.8;
+      width: 100%;
+      box-sizing: border-box;
+      flex: 1;
+    }
+
+    .chart-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 8px;
+      display: block;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    /* ================================================================
+       INSIGHTS & RECOMMENDED ACTIONS CARD
+       ================================================================ */
+    .insight-card {
+      background: linear-gradient(135deg, rgba(20,20,25,.9) 0%, rgba(14,14,18,.9) 100%);
+      border: 1px solid var(--border+);
+      border-radius: 20px;
+      padding: 32px 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 16px 48px rgba(0,0,0,.35);
+    }
+    .insight-card::before {
+      content: '';
+      position: absolute; top: -50px; right: -50px;
+      width: 250px; height: 250px; pointer-events: none;
+      background: radial-gradient(circle, rgba(185,167,255,.1) 0%, transparent 70%);
+    }
+
+    .insight-text {
+      max-width: 620px;
+    }
+    .insight-title {
+      font-family: var(--f-head);
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--ink);
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+    }
+    .insight-p {
+      font-size: .9rem;
+      color: var(--ink-2);
+      line-height: 1.6;
+    }
+
+    .insight-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .btn-p {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 22px;
+      border-radius: 12px;
+      font-family: var(--f-head);
+      font-size: .88rem;
+      font-weight: 700;
+      color: #fff;
+      background: var(--org);
+      border: 1px solid rgba(255,255,255,.15);
+      box-shadow: 0 4px 16px rgba(255,118,45,.28);
+      transition: background .2s, transform .15s;
+    }
+    .btn-p:hover {
+      background: var(--org-s);
+      transform: translateY(-1px);
+    }
+
+    .btn-g {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-family: var(--f-head);
+      font-size: .88rem;
+      font-weight: 600;
+      color: var(--ink-2);
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--border+);
+      transition: color .15s, background .15s, border-color .15s;
+    }
+    .btn-g:hover {
+      color: var(--ink);
+      background: rgba(255,255,255,.09);
+      border-color: rgba(255,255,255,.2);
+    }
+
+    /* ================================================================
+       RESPONSIVE
+       ================================================================ */
+    @media (max-width: 960px) {
+      .summary-page {
+        padding: 36px 32px 64px;
+      }
+      .charts-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      .insight-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 28px;
+      }
+      .insight-actions {
+        width: 100%;
+        flex-wrap: wrap;
+      }
+      .btn-p, .btn-g {
+        flex: 1;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .summary-page {
+        padding: 28px 20px 48px;
+      }
+      .summary-header {
+        margin-bottom: 28px;
+      }
+      .chart-card {
+        padding: 22px 20px;
+      }
+      .chart-frame {
+        aspect-ratio: 7 / 4.8;
+        padding: 8px;
+      }
+    }
+  </style>
 </head>
 <body>
-    {%include 'user_nav.html'%}
-    <div class="qm-page">
-        <div class="qm-header">
-            <h1>My progress</h1>
-            <p class="qm-text-muted">A visual look at how you've been learning.</p>
+
+  <!-- Top Navigation Bar -->
+  {% include 'user_nav.html' %}
+
+  <!-- Page Body -->
+  <main class="summary-page">
+    <div class="summary-content">
+
+      <!-- Header Section -->
+      <section class="summary-header">
+        <div class="summary-badge">
+          <span class="badge-pip"></span>
+          <span>Student Analytics &amp; Progress</span>
         </div>
-        <div class="qm-charts">
-            <div class="qm-chart-card">
-                <div class="qm-chart-card__title">Attempts by subject</div>
-                <img src="/static/images/user_barchart.jpeg" alt="Bar chart of quiz attempts grouped by subject" draggable="false">
+        <h1 class="summary-title">Learning Summary</h1>
+        <p class="summary-sub">Visual analytics tracking your quiz completion distribution across academic subjects and your monthly study cadence.</p>
+      </section>
+
+      <!-- Charts Grid -->
+      <section class="charts-grid" aria-label="Visual analytics">
+
+        <!-- Subject-Wise Bar Chart -->
+        <article class="chart-card">
+          <div class="chart-card__header">
+            <div class="chart-card__title-group">
+              <h2 class="chart-card__title">
+                <svg class="chart-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 16V8"/><path d="M12 16v-4"/><path d="M17 16v-6"/></svg>
+                Attempts by Subject
+              </h2>
+              <p class="chart-card__desc">Total quiz attempts categorized by subject discipline.</p>
             </div>
-            <div class="qm-chart-card">
-                <div class="qm-chart-card__title">Attempts by month</div>
-                <img src="/static/images/user_piechart.jpeg" alt="Pie chart of quiz attempts grouped by month" draggable="false">
+            <span class="chart-pill lav">Curriculum Coverage</span>
+          </div>
+
+          <div class="chart-frame">
+            <img
+              src="/static/images/user_barchart.jpeg"
+              alt="Bar chart showing quiz attempts grouped by subject"
+              class="chart-img"
+              loading="lazy"
+            >
+          </div>
+        </article>
+
+        <!-- Monthly Pie Chart -->
+        <article class="chart-card">
+          <div class="chart-card__header">
+            <div class="chart-card__title-group">
+              <h2 class="chart-card__title">
+                <svg class="chart-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10h-10z"/></svg>
+                Timeline Distribution
+              </h2>
+              <p class="chart-card__desc">Quiz attempts grouped by calendar month of completion.</p>
             </div>
+            <span class="chart-pill lime">Study Cadence</span>
+          </div>
+
+          <div class="chart-frame">
+            <img
+              src="/static/images/user_piechart.jpeg"
+              alt="Donut pie chart showing quiz attempts distributed by month"
+              class="chart-img"
+              loading="lazy"
+            >
+          </div>
+        </article>
+
+      </section>
+
+      <!-- Recommended Next Steps Insight Card -->
+      <section class="insight-card" aria-label="Study recommendation">
+        <div class="insight-text">
+          <h3 class="insight-title">Keep up the exam preparation momentum</h3>
+          <p class="insight-p">Consistently spreading attempts across all curriculum chapters builds long-term recall. Review your performance data to spot subjects that need extra revision before the real exam.</p>
         </div>
+        <div class="insight-actions">
+          <a href="/user/view/scores/{{ name }}" class="btn-g">
+            Review Score Table
+          </a>
+          <a href="/user/{{ name }}" class="btn-p">
+            Take Next Quiz
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+        </div>
+      </section>
+
     </div>
+  </main>
+
 </body>
 </html>

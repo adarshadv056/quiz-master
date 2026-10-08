@@ -1,75 +1,512 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New question - Quiz Master</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/main.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Question &mdash; Quiz Master</title>
+
+  <!-- Typography: Plus Jakarta Sans (Headings) + DM Sans (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ================================================================
+       DESIGN TOKENS — Source of Truth from Landing Page
+       ================================================================ */
+    :root {
+      --bg: #09090b;
+      --bg-1: #0e0e12;
+      --bg-2: #141419;
+      --bg-3: #1a1a22;
+      --border: rgba(255,255,255,.07);
+      --border+: rgba(255,255,255,.13);
+      --border++: rgba(255,255,255,.22);
+      --ink: #f4f4f6;
+      --ink-2: #8a8a9a;
+      --ink-3: #525262;
+
+      /* Brand accents */
+      --lav: #B9A7FF;
+      --lav-s: #d4c8ff;
+      --org: #FF762D;
+      --org-s: #ff9152;
+      --lime: #C9EE83;
+      --red: #FF6F76;
+
+      --f-head: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --f-body: 'DM Sans', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--f-body);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* Film grain texture */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 9999;
+      pointer-events: none;
+      opacity: .028;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ================================================================
+       PAGE LAYOUT & AMBIENT GLOW
+       ================================================================ */
+    .admin-page {
+      position: relative;
+      width: 100%;
+      min-height: calc(100vh - 65px);
+      padding: 48px 72px 96px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .admin-page::before {
+      content: '';
+      position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 720px; height: 460px; pointer-events: none;
+      background: radial-gradient(ellipse 60% 50% at 50% 0%,
+        rgba(255,118,45,.08) 0%,
+        rgba(185,167,255,.04) 55%,
+        transparent 100%);
+      z-index: 0;
+    }
+
+    .form-wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 680px;
+    }
+
+    /* Breadcrumb / Back Link */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: .84rem;
+      font-weight: 600;
+      color: var(--ink-2);
+      margin-bottom: 24px;
+      transition: color .15s, transform .15s;
+    }
+    .back-link:hover {
+      color: var(--ink);
+      transform: translateX(-3px);
+    }
+
+    /* ================================================================
+       FORM CARD
+       ================================================================ */
+    .form-card {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 40px 44px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .form-card::after {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(255,118,45,.5), transparent);
+    }
+
+    .form-badges-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .form-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 4px 12px 4px 9px; border-radius: 999px;
+      border: 1px solid rgba(255,118,45,.25);
+      background: rgba(255,118,45,.08);
+      font-size: .74rem; font-weight: 700; color: var(--org-s);
+    }
+    .badge-pip {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--org); box-shadow: 0 0 6px var(--org);
+    }
+
+    .meta-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 999px;
+      background: rgba(185,167,255,.1);
+      border: 1px solid rgba(185,167,255,.24);
+      color: var(--lav-s);
+      font-size: .76rem; font-weight: 700;
+    }
+
+    .form-title {
+      font-family: var(--f-head);
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+
+    .form-desc {
+      font-size: .92rem;
+      color: var(--ink-2);
+      line-height: 1.55;
+      margin-bottom: 28px;
+    }
+
+    /* Error Alert */
+    .alert-error {
+      background: rgba(255,111,118,.1);
+      border: 1px solid rgba(255,111,118,.3);
+      border-radius: 12px;
+      padding: 12px 18px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: .88rem;
+      color: var(--red);
+      font-weight: 600;
+    }
+
+    /* Form Fields */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+
+    .form-label {
+      font-size: .76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--ink-2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .label-hint {
+      font-size: .72rem;
+      text-transform: none;
+      letter-spacing: normal;
+      color: var(--ink-3);
+      font-weight: 500;
+    }
+
+    .form-input, .form-textarea, .form-select {
+      width: 100%;
+      background: rgba(20, 20, 25, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 13px 18px;
+      font-family: var(--f-body);
+      font-size: .95rem;
+      color: var(--ink);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s, background .2s;
+    }
+    .form-input::placeholder, .form-textarea::placeholder {
+      color: var(--ink-3);
+    }
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      background: rgba(25, 25, 32, 0.95);
+      border-color: var(--org);
+      box-shadow: 0 0 0 3px rgba(255, 118, 45, 0.18);
+    }
+
+    .form-textarea {
+      min-height: 110px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    /* Options Section Card */
+    .options-section {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 12px;
+      margin-bottom: 24px;
+    }
+
+    .options-head {
+      margin-bottom: 18px;
+    }
+    .options-head__title {
+      font-family: var(--f-head);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    .options-head__sub {
+      font-size: .82rem;
+      color: var(--ink-2);
+    }
+
+    .option-row {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .opt-tag {
+      font-family: var(--f-head);
+      font-size: .78rem;
+      font-weight: 800;
+      padding: 10px 12px;
+      text-align: center;
+      border-radius: 10px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+      color: var(--ink-2);
+    }
+
+    .correct-opt-group {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .form-select {
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238a8a9a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      padding-right: 42px;
+    }
+    .form-select option {
+      background: #141419;
+      color: #f4f4f6;
+      padding: 10px;
+    }
+
+    /* Actions */
+    .form-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 32px;
+    }
+
+    .btn-submit {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 24px;
+      border-radius: 12px;
+      font-family: var(--f-head);
+      font-size: .92rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--org) 0%, #e05e16 100%);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.15);
+      box-shadow: 0 8px 24px rgba(255,118,45,.25);
+      cursor: pointer;
+      transition: transform .2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow .2s;
+    }
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(255,118,45,.38);
+    }
+
+    .btn-cancel {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 13px 22px;
+      border-radius: 12px;
+      font-family: var(--f-head);
+      font-size: .92rem;
+      font-weight: 700;
+      color: var(--ink-2);
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border+);
+      transition: color .15s, background .15s;
+    }
+    .btn-cancel:hover {
+      color: var(--ink);
+      background: rgba(255,255,255,.08);
+    }
+
+    @media (max-width: 960px) {
+      .admin-page { padding: 36px 32px 72px; }
+    }
+    @media (max-width: 640px) {
+      .admin-page { padding: 28px 20px 56px; }
+      .form-card { padding: 28px 22px; }
+      .option-row { grid-template-columns: 1fr; gap: 6px; }
+      .opt-tag { text-align: left; padding: 6px 10px; }
+      .form-actions { flex-direction: column-reverse; }
+      .btn-submit, .btn-cancel { width: 100%; }
+    }
+  </style>
 </head>
 <body>
-    {%include 'admin_nav.html'%}
-    <div class="qm-page">
-        <div class="qm-card qm-card--lifted" style="max-width:560px;margin:0 auto">
-            <div class="qm-card__body">
-                <div class="qm-form">
-                    <h2>New question</h2>
-                    {%if chapter%}
-                    <p class="qm-form__subtitle">Adding to <strong>{{chapter.name}}</strong></p>
-                    {%endif%}
-                    <form action="#" method="POST">
-                        {% if mssg %}
-                        <div class="qm-msg qm-msg--error">{{mssg}}</div>
-                        {% endif %}
-                        <div class="qm-field">
-                            <label for="id">Chapter ID</label>
-                            <input type="text" id="name" name="id" value="{{chapter.id}}" required>
-                        </div>
-                        <div class="qm-field">
-                            <label for="question_title">Question title</label>
-                            <input type="text" id="question_title" name="question_title" placeholder="A short label for this question" required>
-                        </div>
-                        <div class="qm-field">
-                            <label for="question_statement">Question</label>
-                            <textarea id="question_statement" name="question_statement" rows="4" placeholder="Write the full question here" required></textarea>
-                        </div>
-                        <div class="qm-qblock">
-                            <div class="qm-qblock__title">Answer choices (single correct)</div>
-                            <div class="qm-field">
-                                <label for="option_1">Option 1</label>
-                                <input type="text" name="option_1" id="option_1" required>
-                            </div>
-                            <div class="qm-field">
-                                <label for="option_2">Option 2</label>
-                                <input type="text" name="option_2" id="option_2" required>
-                            </div>
-                            <div class="qm-field">
-                                <label for="option_3">Option 3</label>
-                                <input type="text" name="option_3" id="option_3" required>
-                            </div>
-                            <div class="qm-field">
-                                <label for="option_4">Option 4</label>
-                                <input type="text" name="option_4" id="option_4" required>
-                            </div>
-                            <div class="qm-field">
-                                <label for="correct_option">Correct answer</label>
-                                <select name="correct_option" id="correct_option" required>
-                                    <option value="1">Option 1</option>
-                                    <option value="2">Option 2</option>
-                                    <option value="3">Option 3</option>
-                                    <option value="4">Option 4</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="qm-flex qm-flex--gap-sm">
-                            <button type="submit" class="qm-btn qm-btn--primary" style="flex:1">Save question</button>
-                            <a href="/admin/quiz_management/{{name}}" class="qm-btn qm-btn--secondary" style="flex:1">Cancel</a>
-                        </div>
-                    </form>
-                </div>
-            </div>
+
+  {% include 'admin_nav.html' %}
+
+  <main class="admin-page">
+    <div class="form-wrapper">
+
+      <a href="/admin/quiz_management/{{ name }}" class="back-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Back to Quiz Management
+      </a>
+
+      <article class="form-card">
+        <div class="form-badges-row">
+          <div class="form-badge">
+            <span class="badge-pip" aria-hidden="true"></span>
+            <span>Question Authoring</span>
+          </div>
+
+          <span class="meta-chip">
+            Quiz #{{ quiz_id if quiz_id else (quiz.id if quiz else '') }}
+          </span>
+
+          {% if chapter %}
+          <span class="meta-chip">
+            Chapter: {{ chapter.name }}
+          </span>
+          {% endif %}
         </div>
+
+        <h1 class="form-title">Add New Question</h1>
+        <p class="form-desc">Author a multiple-choice item, specify the choices, and designate the scoring key.</p>
+
+        {% if mssg %}
+        <div class="alert-error" role="alert">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>{{ mssg }}</span>
+        </div>
+        {% endif %}
+
+        <form action="/new_q/{{ quiz_id if quiz_id else (quiz.id if quiz else '') }}/{{ name }}" method="POST">
+          <input type="hidden" name="id" value="{{ chapter.id if chapter else (quiz.chapter_id if quiz else '') }}">
+
+          <!-- Question Title -->
+          <div class="form-group">
+            <label class="form-label" for="question_title">
+              <span>Question Title / Topic Label</span>
+              <span class="label-hint">Required</span>
+            </label>
+            <input
+              type="text"
+              id="question_title"
+              name="question_title"
+              class="form-input"
+              placeholder="e.g. Asymptotic Notation & Worst-Case Time"
+              required
+              autofocus
+            >
+          </div>
+
+          <!-- Question Statement -->
+          <div class="form-group">
+            <label class="form-label" for="question_statement">
+              <span>Question Statement</span>
+              <span class="label-hint">Required</span>
+            </label>
+            <textarea
+              id="question_statement"
+              name="question_statement"
+              class="form-textarea"
+              placeholder="Write the full problem description, code snippet, or theoretical prompt here..."
+              required
+            ></textarea>
+          </div>
+
+          <!-- 4 Answer Choices Box -->
+          <section class="options-section">
+            <div class="options-head">
+              <h2 class="options-head__title">Answer Choices</h2>
+              <p class="options-head__sub">Provide 4 options for candidates to select from.</p>
+            </div>
+
+            <div class="option-row">
+              <span class="opt-tag">Option 1</span>
+              <input type="text" id="option_1" name="option_1" class="form-input" placeholder="Choice 1 text" required>
+            </div>
+
+            <div class="option-row">
+              <span class="opt-tag">Option 2</span>
+              <input type="text" id="option_2" name="option_2" class="form-input" placeholder="Choice 2 text" required>
+            </div>
+
+            <div class="option-row">
+              <span class="opt-tag">Option 3</span>
+              <input type="text" id="option_3" name="option_3" class="form-input" placeholder="Choice 3 text" required>
+            </div>
+
+            <div class="option-row">
+              <span class="opt-tag">Option 4</span>
+              <input type="text" id="option_4" name="option_4" class="form-input" placeholder="Choice 4 text" required>
+            </div>
+
+            <!-- Correct Option Dropdown -->
+            <div class="correct-opt-group">
+              <label class="form-label" for="correct_option">
+                <span>Designated Correct Option</span>
+                <span class="label-hint">Single Choice Key</span>
+              </label>
+              <select id="correct_option" name="correct_option" class="form-select" required>
+                <option value="1">Option 1 is correct</option>
+                <option value="2">Option 2 is correct</option>
+                <option value="3">Option 3 is correct</option>
+                <option value="4">Option 4 is correct</option>
+              </select>
+            </div>
+          </section>
+
+          <!-- Actions -->
+          <div class="form-actions">
+            <a href="/admin/quiz_management/{{ name }}" class="btn-cancel">Cancel</a>
+            <button type="submit" class="btn-submit">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Save Question
+            </button>
+          </div>
+
+        </form>
+      </article>
+
     </div>
+  </main>
+
 </body>
 </html>

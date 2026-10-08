@@ -1,48 +1,425 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Preview quiz - Quiz Master</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/main.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preview Quiz &mdash; Quiz Master</title>
+
+  <!-- Typography: Plus Jakarta Sans (Headings) + DM Sans (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ================================================================
+       DESIGN TOKENS — Source of Truth from Landing Page
+       ================================================================ */
+    :root {
+      --bg: #09090b;
+      --bg-1: #0e0e12;
+      --bg-2: #141419;
+      --bg-3: #1a1a22;
+      --border: rgba(255,255,255,.07);
+      --border+: rgba(255,255,255,.13);
+      --border++: rgba(255,255,255,.22);
+      --ink: #f4f4f6;
+      --ink-2: #8a8a9a;
+      --ink-3: #525262;
+
+      /* Brand accents */
+      --lav: #B9A7FF;
+      --lav-s: #d4c8ff;
+      --org: #FF762D;
+      --org-s: #ff9152;
+      --lime: #C9EE83;
+      --red: #FF6F76;
+
+      --f-head: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --f-body: 'DM Sans', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--f-body);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* Film grain texture */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 9999;
+      pointer-events: none;
+      opacity: .028;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ================================================================
+       PAGE WRAPPER
+       ================================================================ */
+    .preview-page {
+      position: relative;
+      width: 100%;
+      min-height: calc(100vh - 65px);
+      padding: 48px 72px 96px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Ambient workspace background glow */
+    .preview-page::before {
+      content: '';
+      position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 500px; pointer-events: none;
+      background: radial-gradient(ellipse 60% 50% at 50% 0%,
+        rgba(185,167,255,.09) 0%,
+        rgba(255,118,45,.04) 55%,
+        transparent 100%);
+      z-index: 0;
+    }
+
+    .preview-container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 680px;
+    }
+
+    /* Top navigation back link */
+    .preview-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: .84rem;
+      font-weight: 600;
+      color: var(--ink-3);
+      margin-bottom: 28px;
+      transition: color .15s;
+    }
+    .preview-back:hover {
+      color: var(--ink);
+    }
+
+    /* Main Preview Glass Card */
+    .preview-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border+);
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: 0 24px 64px rgba(0,0,0,.5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pc-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(185,167,255,.2);
+      background: rgba(185,167,255,.07);
+      font-size: .74rem;
+      font-weight: 600;
+      color: var(--lav-s);
+      margin-bottom: 16px;
+    }
+    .badge-pip {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--lime); box-shadow: 0 0 6px var(--lime);
+    }
+
+    .pc-subject-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .76rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(185,167,255,.1);
+      border: 1px solid rgba(185,167,255,.2);
+      color: var(--lav-s);
+      margin-bottom: 12px;
+    }
+
+    .pc-title {
+      font-family: var(--f-head);
+      font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 12px;
+    }
+
+    .pc-remarks {
+      font-size: .95rem;
+      color: var(--ink-2);
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+
+    /* Meta Details 4-Column Grid */
+    .pc-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+
+    .pc-stat-item {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .pc-stat-label {
+      font-size: .74rem;
+      color: var(--ink-3);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      font-weight: 600;
+    }
+    .pc-stat-val {
+      font-family: var(--f-head);
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+    }
+    .pc-stat-val.lav { color: var(--lav-s); }
+    .pc-stat-val.lime { color: var(--lime); }
+    .pc-stat-val.org { color: var(--org-s); }
+
+    /* Instructions Box */
+    .pc-instructions {
+      background: rgba(255,255,255,.025);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 24px;
+      margin-bottom: 36px;
+    }
+    .pc-ins-title {
+      font-family: var(--f-head);
+      font-size: .92rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pc-ins-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+    .pc-ins-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: .86rem;
+      color: var(--ink-2);
+      line-height: 1.5;
+    }
+    .ins-bullet {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--lav);
+      margin-top: 7px;
+      flex-shrink: 0;
+    }
+
+    /* Action Buttons */
+    .pc-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .btn-start-quiz {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-family: var(--f-head);
+      font-size: .96rem;
+      font-weight: 700;
+      color: #fff;
+      background: var(--org);
+      border: 1px solid rgba(255,255,255,.15);
+      box-shadow: 0 6px 22px rgba(255,118,45,.32);
+      flex: 1.4;
+      transition: background .2s, transform .15s, box-shadow .2s;
+    }
+    .btn-start-quiz:hover {
+      background: var(--org-s);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(255,118,45,.44);
+    }
+
+    .btn-cancel {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-family: var(--f-head);
+      font-size: .92rem;
+      font-weight: 600;
+      color: var(--ink-2);
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--border+);
+      flex: 1;
+      transition: color .15s, background .15s, border-color .15s;
+    }
+    .btn-cancel:hover {
+      color: var(--ink);
+      background: rgba(255,255,255,.09);
+      border-color: rgba(255,255,255,.2);
+    }
+
+    /* ================================================================
+       RESPONSIVE
+       ================================================================ */
+    @media (max-width: 768px) {
+      .preview-page {
+        padding: 32px 20px 64px;
+      }
+      .preview-card {
+        padding: 28px 22px;
+      }
+      .pc-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .pc-actions {
+        flex-direction: column-reverse;
+      }
+      .btn-start-quiz, .btn-cancel {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
-    {%include 'user_nav.html'%}
-    <div class="qm-page">
-        <div class="qm-header">
-            <h1>Quiz preview</h1>
-            <p class="qm-text-muted">Review what's in this quiz before you begin.</p>
+
+  <!-- Top Navigation Bar -->
+  {% include 'user_nav.html' %}
+
+  <!-- Page Body -->
+  <main class="preview-page">
+    <div class="preview-container">
+
+      <a href="/user/{{ name }}" class="preview-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        Back to available quizzes
+      </a>
+
+      <article class="preview-card" aria-label="Quiz preview">
+        <div class="pc-badge">
+          <span class="badge-pip"></span>
+          <span>Timed Quiz Preview</span>
         </div>
-        <div class="qm-card qm-card--lifted" style="max-width:480px;margin:0 auto">
-            <div class="qm-card__body">
-                <div class="qm-user-card__row">
-                    <span>Subject</span>
-                    <span>{{quiz.chapter.subject.name}}</span>
-                </div>
-                <div class="qm-user-card__row">
-                    <span>Chapter</span>
-                    <span>{{quiz.chapter.name}}</span>
-                </div>
-                <div class="qm-user-card__row">
-                    <span>Questions</span>
-                    <span>{{quiz.questions | length}}</span>
-                </div>
-                <div class="qm-user-card__row">
-                    <span>Scheduled</span>
-                    <span>{{quiz.date_of_quiz}}</span>
-                </div>
-                <div class="qm-user-card__row">
-                    <span>Duration</span>
-                    <span>{{quiz.time_duration}}</span>
-                </div>
-                <div class="qm-btn-group" style="margin-top:20px">
-                    <a href="/user/start/quiz/{{quiz.id}}/{{name}}" class="qm-btn qm-btn--primary" style="flex:1">Start quiz</a>
-                    <a href="/user/{{name}}" class="qm-btn qm-btn--secondary" style="flex:1">Close</a>
-                </div>
-            </div>
+
+        <div>
+          <span class="pc-subject-chip">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/></svg>
+            {% if quiz.chapter and quiz.chapter.subject %}
+              {{ quiz.chapter.subject.name }} &middot; {{ quiz.chapter.name }}
+            {% elif quiz.chapter %}
+              {{ quiz.chapter.name }}
+            {% else %}
+              General Discipline
+            {% endif %}
+          </span>
         </div>
+
+        <h1 class="pc-title">
+          {% if quiz.chapter %}
+            {{ quiz.chapter.name }}
+          {% else %}
+            Quiz #{{ quiz.id }}
+          {% endif %}
+        </h1>
+
+        {% if quiz.remarks %}
+          <p class="pc-remarks">{{ quiz.remarks }}</p>
+        {% else %}
+          <p class="pc-remarks">This assessment evaluates your retention and problem-solving velocity on the designated chapter objectives.</p>
+        {% endif %}
+
+        <!-- 3 Key Assessment Attributes -->
+        <div class="pc-stats-grid">
+          <div class="pc-stat-item">
+            <span class="pc-stat-label">Total Questions</span>
+            <span class="pc-stat-val lav">{{ quiz.questions | length }} MCQs</span>
+          </div>
+          <div class="pc-stat-item">
+            <span class="pc-stat-label">Time Duration</span>
+            <span class="pc-stat-val org">{{ quiz.time_duration }}</span>
+          </div>
+          <div class="pc-stat-item">
+            <span class="pc-stat-label">Scheduled For</span>
+            <span class="pc-stat-val lime">{{ quiz.date_of_quiz }}</span>
+          </div>
+        </div>
+
+        <!-- Exam Guidelines Box -->
+        <div class="pc-instructions">
+          <h2 class="pc-ins-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--lav)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Instructions before starting
+          </h2>
+          <ul class="pc-ins-list">
+            <li>
+              <span class="ins-bullet"></span>
+              The countdown timer will initiate the moment you click <strong>Start Quiz Now</strong>.
+            </li>
+            <li>
+              <span class="ins-bullet"></span>
+              Select one option for each question and click <strong>Save and next</strong> to record your response.
+            </li>
+            <li>
+              <span class="ins-bullet"></span>
+              Your total score and answer verification will be computed instantly upon submission.
+            </li>
+          </ul>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="pc-actions">
+          <a href="/user/{{ name }}" class="btn-cancel">
+            Close &amp; Return
+          </a>
+          <a href="/user/start/quiz/{{ quiz.id }}/{{ name }}" class="btn-start-quiz">
+            Start Quiz Now
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+        </div>
+      </article>
+
     </div>
+  </main>
+
 </body>
 </html>

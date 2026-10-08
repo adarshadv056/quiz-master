@@ -278,6 +278,7 @@ def get_question():
 @app.route("/admin/quiz_management/new_quiz/<name>", methods=["GET", "POST"])
 @login_required
 def new_quiz(name):
+    chapters = get_chapters()
     if request.method == "POST":
         chap_id = request.form.get("id")
         date = request.form.get("date")
@@ -286,19 +287,20 @@ def new_quiz(name):
         date_obj = datetime.strptime(date, "%Y-%m-%d").date()
         chap = Chapter.query.filter_by(id=chap_id).first()
         if not chap:
-            return render_template("new_quiz.html",name=name, mssg="Chapter does not exist, Kindly add Chapter first")
+            return render_template("new_quiz.html", name=name, chapters=chapters, mssg="Chapter does not exist, Kindly add Chapter first")
         else:
             newquiz = Quiz(chapter_id=chap_id,date_of_quiz=date_obj,time_duration=duration,remarks=remarks)
             db.session.add(newquiz)
             db.session.commit()
             return redirect(url_for("quiz_management", name=name))
-    return render_template("new_quiz.html", name=name)
+    return render_template("new_quiz.html", name=name, chapters=chapters)
 
 
 @app.route("/edit_quiz/<quiz_id>/<name>", methods=["GET", "POST"])
 @login_required
 def edit_quiz(quiz_id, name):
     quiz = Quiz.query.filter_by(id=quiz_id).first()
+    chapters = get_chapters()
     if request.method == "POST":
         quiz.chapter_id = request.form.get("id")
         quiz.name = request.form.get("name")
@@ -307,11 +309,11 @@ def edit_quiz(quiz_id, name):
         quiz.description = request.form.get("desc")
         chap = Chapter.query.filter_by(id=quiz.chapter_id).first()
         if not chap:
-            return render_template("new_quiz.html",name=name, mssg="Chapter does not exist, Kindly add Chapter first")
+            return render_template("edit_quiz.html", name=name, quiz=quiz, chapters=chapters, mssg="Chapter does not exist, Kindly add Chapter first")
         else:
             db.session.commit()
             return redirect(url_for("quiz_management", name=name))
-    return render_template("edit_quiz.html", name=name, quiz=quiz, quiz_id=quiz.id,chapter_id=quiz.chapter_id)
+    return render_template("edit_quiz.html", name=name, quiz=quiz, quiz_id=quiz.id, chapter_id=quiz.chapter_id, chapters=chapters)
 
 @app.route("/del_quiz/<quiz_id>/<name>", methods=["GET", "POST"])
 @login_required
@@ -357,8 +359,10 @@ def new_q(quiz_id, name):
 @app.route("/edit_q/<question_id>/<name>", methods=["GET", "POST"])
 @login_required
 def edit_q(question_id, name):
-    chap=None
     q = Question.query.filter_by(id=question_id).first()
+    chap = None
+    if q and q.quiz and q.quiz.chapter:
+        chap = q.quiz.chapter
     if request.method == "POST":
         chap_id = request.form.get("id")
         q.chapter_id = request.form.get("id")
@@ -370,9 +374,8 @@ def edit_q(question_id, name):
         q.option4 = request.form.get("option_4")
         q.correct_option = request.form.get("correct_option").strip()
         db.session.commit()
-        chap = Chapter.query.filter_by(id=chap_id).first()
         return redirect(url_for("quiz_management", name=name))
-    return render_template("edit_q.html", name=name,chapter=chap,question=q)
+    return render_template("edit_q.html", name=name, chapter=chap, question=q)
 
 @app.route("/del_q/<question_id>/<name>", methods=["GET", "POST"])
 @login_required
@@ -487,73 +490,93 @@ def view_scores(name):
     return render_template("scores.html", name=name, scores=scores)
 
 def get_user_bar_summary():
-    scores=Score.query.filter_by(user_id=session["user_id"]).all()
-    if scores:
-        summary = {}        
-        for score in scores:
-            if score.quiz_id is None:
+    scores=Score.query.filter_by(user_id=session.get("user_id")).all()
+    if not scores:
+        return None
+    summary = {}        
+    for score in scores:
+        if score.quiz_id is None:
+            sub_name = "N/A"
+            if sub_name not in summary:
+                summary[sub_name] = 0
+            summary[sub_name] += 1
+        else:
+            quiz = Quiz.query.get(score.quiz_id)
+            if quiz and quiz.chapter_id is None:
                 sub_name = "N/A"
                 if sub_name not in summary:
                     summary[sub_name] = 0
                 summary[sub_name] += 1
-            else:
-                quiz = Quiz.query.get(score.quiz_id)
-                if quiz.chapter_id is None:
+            elif quiz:
+                chapter = Chapter.query.get(quiz.chapter_id)
+                if chapter and chapter.subject_id is None:
                     sub_name = "N/A"
                     if sub_name not in summary:
                         summary[sub_name] = 0
                     summary[sub_name] += 1
-                else:
-                    chapter = Chapter.query.get(quiz.chapter_id)
-                    if chapter.subject_id is None:
-                        sub_name = "N/A"
-                        if sub_name not in summary:
-                            summary[sub_name] = 0
-                        summary[sub_name] += 1
-                    else:
-                        subject = Subject.query.get(chapter.subject_id)
-                        sub_name = subject.name
-                        if sub_name not in summary:
-                            summary[sub_name] = 0
-                        summary[sub_name] += 1
-        if not summary:
-            return None
-        x_names = list(summary.keys())
-        y_count = list(summary.values())
-        plt.bar(x_names,y_count,color=["blue", "green", "orange", "purple","red"],width=0.4)
-        plt.title("Subject wise quiz attempt")
-        plt.xlabel("Subjects")
-        plt.ylabel("No of quizz attempted")
-        graph_path= "./static/images/user_barchart.jpeg"
-        plt.savefig(graph_path)
-        plt.close()
+                elif chapter:
+                    subject = Subject.query.get(chapter.subject_id)
+                    sub_name = subject.name if subject else "N/A"
+                    if sub_name not in summary:
+                        summary[sub_name] = 0
+                    summary[sub_name] += 1
+    if not summary:
+        return None
+    x_names = list(summary.keys())
+    y_count = list(summary.values())
+    fig, ax = plt.subplots(figsize=(7, 4.8), facecolor='#141419')
+    ax.set_facecolor('#141419')
+    colors = ['#B9A7FF', '#C9EE83', '#FF762D', '#60A5FA', '#F472B6']
+    bar_colors = (colors * 3)[:len(x_names)]
+    ax.bar(x_names, y_count, color=bar_colors, width=0.42, edgecolor='none', zorder=3)
+    ax.set_title("Subject-wise Quiz Attempts", color='#f4f4f6', fontsize=13, fontweight='bold', pad=16)
+    ax.set_xlabel("Subjects", color='#8a8a9a', fontsize=10, labelpad=10)
+    ax.set_ylabel("Quizzes Attempted", color='#8a8a9a', fontsize=10, labelpad=10)
+    ax.tick_params(colors='#8a8a9a', labelsize=9)
+    ax.grid(axis='y', color='#ffffff', alpha=0.06, linestyle='--', zorder=0)
+    for spine in ax.spines.values():
+        spine.set_color('#ffffff')
+        spine.set_alpha(0.12)
+    fig.tight_layout()
+    graph_path = "./static/images/user_barchart.jpeg"
+    plt.savefig(graph_path, facecolor=fig.get_facecolor(), dpi=120)
+    plt.close()
     return graph_path
 
 def get_user_pie_summary():
-    scores=Score.query.filter_by(user_id=session["user_id"]).all()
+    scores=Score.query.filter_by(user_id=session.get("user_id")).all()
+    if not scores:
+        return None
     monthly_summary = {}
     for score in scores:
-        if not score.quiz_id:
-            month=score.time_stamp_of_attempt.strftime("%b %Y")
-        month=score.time_stamp_of_attempt.strftime("%b %Y")
+        month = score.time_stamp_of_attempt.strftime("%b %Y") if score.time_stamp_of_attempt else "N/A"
         if month not in monthly_summary:
             monthly_summary[month] = 0
         monthly_summary[month] += 1
+    if not monthly_summary:
+        return None
     labels = list(monthly_summary.keys())
     sizes = list(monthly_summary.values())
-    plt.figure(figsize=(7, 7))
-    wedges, texts, autotexts = plt.pie(
-        sizes, labels=labels, startangle=90, colors=["blue", "green", "orange", "purple","red"],
-        autopct=lambda p: f'{round(p * sum(sizes) / 100)}'
+    fig, ax = plt.subplots(figsize=(7, 4.8), facecolor='#141419')
+    ax.set_facecolor('#141419')
+    colors = ['#B9A7FF', '#C9EE83', '#FF762D', '#60A5FA', '#F472B6']
+    pie_colors = (colors * 3)[:len(labels)]
+    wedges, texts, autotexts = ax.pie(
+        sizes, labels=labels, startangle=90, colors=pie_colors,
+        autopct=lambda p: f'{round(p * sum(sizes) / 100)}',
+        wedgeprops=dict(width=0.62, edgecolor='#141419', linewidth=2.5)
     )
     for text in texts:
         text.set_fontsize(10)
+        text.set_color('#f4f4f6')
     for autotext in autotexts:
-        autotext.set_fontsize(12)
-        autotext.set_color("white")
-    plt.title("Month-wise Quiz Attempts")
+        autotext.set_fontsize(11)
+        autotext.set_fontweight('bold')
+        autotext.set_color('#09090b')
+    ax.set_title("Month-wise Quiz Attempts", color='#f4f4f6', fontsize=13, fontweight='bold', pad=16)
+    fig.tight_layout()
     graph_path = "./static/images/user_piechart.jpeg"
-    plt.savefig(graph_path)
+    plt.savefig(graph_path, facecolor=fig.get_facecolor(), dpi=120)
     plt.close()
     return graph_path
 
@@ -571,41 +594,55 @@ def user_summary(name):
 
 def get_admin_bar_summary():
     scores=Score.query.all()
+    if not scores:
+        return None
     subject_wise_score = {}        
     for score in scores:
         if score.quiz_id is None:
             sub_name = "N/A"
-            subject_wise_score[sub_name] = score.total_score
+            subject_wise_score[sub_name] = max(subject_wise_score.get(sub_name, 0), score.total_score or 0)
         else:
             quiz = Quiz.query.get(score.quiz_id)
-            if quiz.chapter_id is None:
+            if quiz and quiz.chapter_id is None:
                 sub_name = "N/A"
-                subject_wise_score[sub_name] = score.total_score
-            else:
+                subject_wise_score[sub_name] = max(subject_wise_score.get(sub_name, 0), score.total_score or 0)
+            elif quiz:
                 chapter = Chapter.query.get(quiz.chapter_id)
-                if chapter.subject_id is None:
+                if chapter and chapter.subject_id is None:
                     sub_name = "N/A"
-                    subject_wise_score[sub_name] = score.total_score
-                else:
+                    subject_wise_score[sub_name] = max(subject_wise_score.get(sub_name, 0), score.total_score or 0)
+                elif chapter:
                     subject = Subject.query.get(chapter.subject_id)
-                    if subject.name not in subject_wise_score or score.total_score > subject_wise_score[subject.name]:
-                        sub_name = subject.name
-                        subject_wise_score[sub_name] = score.total_score
+                    sub_name = subject.name if subject else "N/A"
+                    if sub_name not in subject_wise_score or (score.total_score or 0) > subject_wise_score[sub_name]:
+                        subject_wise_score[sub_name] = score.total_score or 0
     if not subject_wise_score:
         return None
     x_names = list(subject_wise_score.keys())
     y_count = list(subject_wise_score.values())
-    plt.bar(x_names,y_count,color=["blue", "green", "orange", "purple","red"],width=0.4)
-    plt.title("Subject wise heighest score",fontsize=20, fontweight='bold')
-    plt.xlabel("Subjects")
-    plt.ylabel("Heighest score")
-    graph_path= "./static/images/admin_barchart.jpeg"
-    plt.savefig(graph_path)
+    fig, ax = plt.subplots(figsize=(7, 4.8), facecolor='#141419')
+    ax.set_facecolor('#141419')
+    colors = ['#B9A7FF', '#C9EE83', '#FF762D', '#60A5FA', '#F472B6']
+    bar_colors = (colors * 3)[:len(x_names)]
+    ax.bar(x_names, y_count, color=bar_colors, width=0.42, edgecolor='none', zorder=3)
+    ax.set_title("Highest Score by Subject", color='#f4f4f6', fontsize=13, fontweight='bold', pad=16)
+    ax.set_xlabel("Subjects", color='#8a8a9a', fontsize=10, labelpad=10)
+    ax.set_ylabel("Highest Score", color='#8a8a9a', fontsize=10, labelpad=10)
+    ax.tick_params(colors='#8a8a9a', labelsize=9)
+    ax.grid(axis='y', color='#ffffff', alpha=0.06, linestyle='--', zorder=0)
+    for spine in ax.spines.values():
+        spine.set_color('#ffffff')
+        spine.set_alpha(0.12)
+    fig.tight_layout()
+    graph_path = "./static/images/admin_barchart.jpeg"
+    plt.savefig(graph_path, facecolor=fig.get_facecolor(), dpi=120)
     plt.close()
     return graph_path
 
 def get_subject_wise_user_attmept():
     scores=Score.query.all()
+    if not scores:
+        return None
     subject_wise_user_attempt = {}        
     for score in scores:
         sub_name = "N/A"
@@ -625,22 +662,24 @@ def get_subject_wise_user_attmept():
     subjects = list(subject_wise_user_attempt.keys())
     count_of_attempt = list(subject_wise_user_attempt.values())
     total_attempts = sum(count_of_attempt)
-    colors=["blue", "green", "orange", "purple", "red", "cyan", "pink", "yellow"]
-    fig,ax=plt.subplots(figsize=(8,8))
-    radius=0.8
-    max_attempts = max(count_of_attempt)
-    min_width = 0.1
-    max_width = 0.35
+    colors = ['#B9A7FF', '#C9EE83', '#FF762D', '#60A5FA', '#F472B6', '#34D399', '#FBBF24']
+    fig, ax = plt.subplots(figsize=(7, 4.8), facecolor='#141419')
+    ax.set_facecolor('#141419')
+    radius = 0.85
+    max_attempts = max(count_of_attempt) if count_of_attempt else 1
+    min_width = 0.12
+    max_width = 0.28
     for i in range(len(subjects)):
         width = (count_of_attempt[i] / max_attempts) * max_width
         width = max(width, min_width)
-        ax.pie([1],radius=radius, colors=[colors[i % len(colors)]],wedgeprops=dict(width=width, edgecolor='white'),startangle=90)
-        ax.text(0,radius-(width/2),f"{subjects[i]} {count_of_attempt[i]}",horizontalalignment='center',verticalalignment='center',fontsize=12,fontweight='bold',color='w')
+        ax.pie([1], radius=radius, colors=[colors[i % len(colors)]], wedgeprops=dict(width=width, edgecolor='#141419', linewidth=2), startangle=90)
+        ax.text(0, radius - (width / 2), f"{subjects[i]}  ({count_of_attempt[i]})", horizontalalignment='center', verticalalignment='center', fontsize=9.5, fontweight='bold', color='#ffffff')
         radius -= width
-    plt.text(0, 0, f"Total\n{total_attempts}", ha='center', va='center',fontsize=18, fontweight='bold', color="black")
-    plt.title("Subject wise user attempts",fontsize=30, fontweight='bold')
-    graph_path= "./static/images/admin_bullseye_chart.jpeg"
-    plt.savefig(graph_path)
+    plt.text(0, 0, f"Total Attempts\n{total_attempts}", ha='center', va='center', fontsize=11, fontweight='bold', color="#f4f4f6")
+    ax.set_title("Subject-wise User Attempts", color='#f4f4f6', fontsize=13, fontweight='bold', pad=14)
+    fig.tight_layout()
+    graph_path = "./static/images/admin_bullseye_chart.jpeg"
+    plt.savefig(graph_path, facecolor=fig.get_facecolor(), dpi=120)
     plt.close()
     return graph_path
 
